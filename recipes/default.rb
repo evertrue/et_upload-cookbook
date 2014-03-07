@@ -24,6 +24,7 @@
 # 6. Copy necessary system files to chroot jail (users will not read things outside jail)
 # 7. Set up users
 
+include_recipe 'openssh::default'
 include_recipe 'et_upload::scripts'
 include_recipe 'et_upload::chroot_jail'
 include_recipe 'et_upload::users'

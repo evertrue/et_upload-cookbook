@@ -37,4 +37,4 @@ Stove::RakeTask.new do |stove|
 end
 
 # The default rake task should just run it all
-task default: ['style', 'unit', 'integration']
+task default: %w(style unit integration)

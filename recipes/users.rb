@@ -27,7 +27,7 @@ upload_users = data_bag_item('users', 'upload')
 
 upload_users.each do |uname, u|
   if uname != 'id'
-    home = "#{node['et_upload']['chroot_home']}/#{uname}"
+    u['home'] = "#{node['et_upload']['chroot_home']}/#{uname}"
     u['gid'] = 'uploadonly'
 
     user uname do
@@ -38,23 +38,23 @@ upload_users.each do |uname, u|
       comment u['comment']
       password u['password'] if u['password']
       supports manage_home: true
-      home home
+      home u['home']
     end
 
-    directory home do
+    directory u['home'] do
       owner 'root'
       group u['gid']
       mode 0755
     end
 
-    directory "#{home}/.ssh" do
+    directory "#{u['home']}/.ssh" do
       owner uname
       group u['gid']
       mode '0700'
     end
 
     if u['ssh_keys']
-      template "#{home}/.ssh/authorized_keys" do
+      template "#{u['home']}/.ssh/authorized_keys" do
         source 'authorized_keys.erb'
         owner u['uname']
         group u['gid']
@@ -63,13 +63,13 @@ upload_users.each do |uname, u|
       end
     end
 
-    directory "#{home}/.ssh" do
+    directory "#{u['home']}/.ssh" do
       owner uname
       group u['gid']
       mode 0700
     end
 
-    directory "#{home}/uploads" do
+    directory "#{u['home']}/uploads" do
       owner u['name']
       group u['gid']
       mode 0775

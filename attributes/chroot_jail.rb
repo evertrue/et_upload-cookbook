@@ -12,3 +12,4 @@ default['et_upload']['chroot_dirs'] = %w(
   usr/lib
 )
 default['et_upload']['chroot_path'] = '/usr/chroot'
+default['et_upload']['chroot_home'] = "#{node['et_upload']['chroot_path']}/home"

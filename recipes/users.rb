@@ -46,31 +46,31 @@ upload_users.each do |uname, u|
       mode 0755
     end
 
-    directory "#{home_dir}/.ssh" do
+    directory "#{home}/.ssh" do
       owner uname
       group 'uploadonly'
       mode '0700'
     end
 
     if u['ssh_keys']
-      template "#{home_dir}/.ssh/authorized_keys" do
+      template "#{home}/.ssh/authorized_keys" do
         source 'authorized_keys.erb'
         cookbook new_resource.cookbook
-        owner u['uname']
+        owner uname
         group u['gid'] || u['uname']
         mode '0600'
         variables ssh_keys: u['ssh_keys']
       end
     end
 
-    directory "#{node['et_upload']['chroot_home']}/#{uname}/.ssh" do
-      owner u['name']
+    directory "#{home}/.ssh" do
+      owner uname
       group 'uploadonly'
       mode 0700
     end
 
     directory "#{home}/upload" do
-      owner u['name']
+      owner uname
       group 'uploadonly'
       mode 0775
     end

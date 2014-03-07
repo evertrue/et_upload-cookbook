@@ -56,7 +56,6 @@ upload_users.each do |uname, u|
     if u['ssh_keys']
       template "#{home}/.ssh/authorized_keys" do
         source 'authorized_keys.erb'
-        cookbook new_resource.cookbook
         owner u['uname']
         group u['gid']
         mode '0600'

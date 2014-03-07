@@ -28,10 +28,11 @@ upload_users = data_bag_item('users', 'upload')
 upload_users.each do |uname, u|
   if uname != 'id'
     home = "#{node['et_upload']['chroot_home']}/#{uname}"
+    u['gid'] = 'uploadonly'
 
     user uname do
       uid u['uid']
-      gid 'uploadonly'
+      gid u['gid']
       # gid u['gid'] if u['gid']
       shell u['shell']
       comment u['comment']
@@ -42,13 +43,13 @@ upload_users.each do |uname, u|
 
     directory home do
       owner 'root'
-      group 'uploadonly'
+      group u['gid']
       mode 0755
     end
 
     directory "#{home}/.ssh" do
       owner uname
-      group 'uploadonly'
+      group u['gid']
       mode '0700'
     end
 
@@ -56,8 +57,8 @@ upload_users.each do |uname, u|
       template "#{home}/.ssh/authorized_keys" do
         source 'authorized_keys.erb'
         cookbook new_resource.cookbook
-        owner uname
-        group u['gid'] || u['uname']
+        owner u['uname']
+        group u['gid']
         mode '0600'
         variables ssh_keys: u['ssh_keys']
       end
@@ -65,13 +66,13 @@ upload_users.each do |uname, u|
 
     directory "#{home}/.ssh" do
       owner uname
-      group 'uploadonly'
+      group u['gid']
       mode 0700
     end
 
     directory "#{home}/upload" do
-      owner uname
-      group 'uploadonly'
+      owner u['name']
+      group u['gid']
       mode 0775
     end
   end

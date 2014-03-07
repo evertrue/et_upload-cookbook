@@ -2,6 +2,10 @@ et_upload cookbook CHANGELOG
 ============================
 This file is used to list changes made in each version of the et_upload cookbook.
 
+v0.3.0
+------
+- Add setup of chroot jail using [Jailkit](http://olivier.sessink.nl/jailkit/)
+
 v0.2.0
 ------
 - Fix user creation to add all necessary folders & set ownership properly

@@ -1,6 +1,6 @@
 #
 # Cookbook Name:: et_upload
-# Recipe:: default
+# Recipe:: chroot_jail
 #
 # Copyright (C) 2014 EverTrue, Inc.
 #
@@ -17,12 +17,17 @@
 # limitations under the License.
 #
 
-# Steps to set up:
-# 3. Install rssh
-# 4. Configure RSSH
-# 5. Set up chroot jail
-# 6. Copy necessary system files to chroot jail (users will not read things outside jail)
-# 7. Set up users
+directory node['et_upload']['chroot_path'] do
+  owner 'root'
+  group 'root'
+  mode '0755'
+  recursive true
+end
 
-include_recipe 'et_upload::scripts'
-include_recipe 'et_upload::chroot_jail'
+node['et_upload']['chroot_dirs'].each do |path|
+  directory "#{node['et_upload']['chroot_path']}/#{path}" do
+    owner 'root'
+    group 'root'
+    recursive true
+  end
+end

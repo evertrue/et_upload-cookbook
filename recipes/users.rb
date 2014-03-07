@@ -69,7 +69,7 @@ upload_users.each do |uname, u|
       mode 0700
     end
 
-    directory "#{home}/upload" do
+    directory "#{home}/uploads" do
       owner u['name']
       group u['gid']
       mode 0775

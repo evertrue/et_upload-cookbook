@@ -34,7 +34,7 @@ upload_users.each do |uname, u|
       uid u['uid']
       gid u['gid']
       # gid u['gid'] if u['gid']
-      shell u['shell']
+      shell '/bin/bash'
       comment u['comment']
       password u['password'] if u['password']
       supports manage_home: true

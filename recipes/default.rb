@@ -17,14 +17,8 @@
 # limitations under the License.
 #
 
-# Steps to set up:
-# 3. Install rssh
-# 4. Configure RSSH
-# 5. Set up chroot jail
-# 6. Copy necessary system files to chroot jail (users will not read things outside jail)
-# 7. Set up users
-
 include_recipe 'openssh::default'
+include_recipe 'chef-jailkit::default'
 include_recipe 'et_upload::scripts'
 include_recipe 'et_upload::chroot_jail'
 include_recipe 'et_upload::users'

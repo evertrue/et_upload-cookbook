@@ -24,16 +24,18 @@ end
 directory node['et_upload']['chroot_home']
 
 upload_users = data_bag_item('users', 'upload')
+jailed_users = []
 
 upload_users.each do |uname, u|
   if uname != 'id'
+    jailed_users << uname
+
     u['home'] = "#{node['et_upload']['chroot_home']}/#{uname}"
     u['gid'] = 'uploadonly'
 
     user uname do
       uid u['uid']
       gid u['gid']
-      # gid u['gid'] if u['gid']
       shell '/bin/bash'
       comment u['comment']
       password u['password'] if u['password']
@@ -75,4 +77,10 @@ upload_users.each do |uname, u|
       mode 0775
     end
   end
+end
+
+execute 'jk_init' do
+  command "jk_jailuser -j #{node['et_upload']['chroot_path']} " \
+          "#{jailed_users.join(' ')}"
+  only_if "test -f #{node['jailkit']['jk_ini_path']}"
 end

@@ -24,14 +24,17 @@ directory node['et_upload']['chroot_path'] do
   recursive true
 end
 
-jk_init_ini_path = node['jailkit']['jk_ini_path']
-jk_init_ini_file = File.basename jk_init_ini_path
+jk_init_ini_path     = node['jailkit']['jk_init_ini_path']
+jk_chrootsh_ini_path = node['jailkit']['jk_chrootsh_ini_path']
+jk_path              = node['jailkit']['path']
 
-cookbook_file jk_init_ini_file do
-  path jk_init_ini_path
-  owner 'root'
-  group 'root'
-  only_if 'test -d jk_path'
+[jk_init_ini_path, jk_chrootsh_ini_path].each do |file_path|
+  cookbook_file file_path do
+    path file_path
+    owner 'root'
+    group 'root'
+    only_if "test -d #{jk_path}"
+  end
 end
 
 execute 'jk_init' do

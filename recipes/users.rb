@@ -82,5 +82,5 @@ end
 execute 'jk_init' do
   command "jk_jailuser -j #{node['et_upload']['chroot_path']} " \
           "#{jailed_users.join(' ')}"
-  only_if "test -f #{node['jailkit']['jk_ini_path']}"
+  only_if "test -f #{node['jailkit']['jk_init_ini_path']}"
 end

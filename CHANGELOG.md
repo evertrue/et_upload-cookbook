@@ -2,6 +2,10 @@ et_upload cookbook CHANGELOG
 ============================
 This file is used to list changes made in each version of the et_upload cookbook.
 
+v1.0.1
+------
+- Fix mode of scripts to be executable
+
 v1.0.0
 ------
 - Use OpenSSH’s built-in SFTP user jailing instead of building a chroot jail

@@ -18,7 +18,5 @@
 #
 
 include_recipe 'openssh::default'
-include_recipe 'chef-jailkit::default'
 include_recipe 'et_upload::scripts'
-include_recipe 'et_upload::chroot_jail'
 include_recipe 'et_upload::users'

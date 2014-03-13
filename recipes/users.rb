@@ -21,16 +21,11 @@ group 'uploadonly' do
   action :create
 end
 
-directory node['et_upload']['chroot_home']
-
 upload_users = data_bag_item('users', 'upload')
-jailed_users = []
 
 upload_users.each do |uname, u|
   if uname != 'id'
-    jailed_users << uname
-
-    u['home'] = "#{node['et_upload']['chroot_home']}/#{uname}"
+    u['home'] = "/home/#{uname}"
     u['gid'] = 'uploadonly'
 
     user uname do
@@ -46,41 +41,26 @@ upload_users.each do |uname, u|
     directory u['home'] do
       owner 'root'
       group u['gid']
-      mode 0755
+      mode '0755'
+      action :create
     end
 
-    directory "#{u['home']}/.ssh" do
-      owner uname
-      group u['gid']
-      mode '0700'
+    ["#{u['home']}/.ssh", "#{u['home']}/uploads"].each do |dir|
+      directory dir do
+        owner uname
+        group u['gid']
+        mode 0700
+      end
     end
 
     if u['ssh_keys']
       template "#{u['home']}/.ssh/authorized_keys" do
         source 'authorized_keys.erb'
-        owner u['uname']
+        owner uname
         group u['gid']
         mode '0600'
         variables ssh_keys: u['ssh_keys']
       end
     end
-
-    directory "#{u['home']}/.ssh" do
-      owner uname
-      group u['gid']
-      mode 0700
-    end
-
-    directory "#{u['home']}/uploads" do
-      owner u['name']
-      group u['gid']
-      mode 0775
-    end
   end
-end
-
-execute 'jk_init' do
-  command "jk_jailuser -j #{node['et_upload']['chroot_path']} " \
-          "#{jailed_users.join(' ')}"
-  only_if "test -f #{node['jailkit']['jk_init_ini_path']}"
 end

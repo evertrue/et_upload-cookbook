@@ -30,6 +30,7 @@ end
     path "/opt/evertrue/upload/#{file}"
     owner 'root'
     group 'root'
+    mode '0755'
     only_if 'test -d /opt/evertrue/upload'
   end
 end

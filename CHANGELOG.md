@@ -2,6 +2,10 @@ et_upload cookbook CHANGELOG
 ============================
 This file is used to list changes made in each version of the et_upload cookbook.
 
+v1.1.0
+------
+- Add ChefSpec unit tests
+
 v1.0.1
 ------
 - Fix mode of scripts to be executable

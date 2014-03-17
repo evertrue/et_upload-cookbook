@@ -13,13 +13,13 @@ describe 'et_upload::default' do
         'penncharter4616' => {
           'uid'      => 10_042,
           'keys'     => 'ssh-key-1',
-          'contact'  => 'Test User 1',
+          'comment'  => 'Test User 1',
           'password' => 'password'
         },
         'randolphschool6139' => {
           'uid'      => 10_041,
           'keys'     => 'ssh-key-2',
-          'contact'  => 'Test User 2',
+          'comment'  => 'Test User 2',
           'password' => 'password'
         }
       }

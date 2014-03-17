@@ -47,7 +47,7 @@ describe 'et_upload::default' do
 
   %w(show_uploads process_uploads clean_uploads).each do |cronjob|
     it "installs #{cronjob} in cron.d" do
-      expect(chef_run).to create_crond_d(cronjob)
+      expect(chef_run).to create_cron_d(cronjob)
     end
   end
 end

@@ -1,5 +1,6 @@
 require 'serverspec'
 require 'pathname'
+require 'json'
 
 include Serverspec::Helper::Exec
 include Serverspec::Helper::DetectOS

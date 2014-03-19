@@ -2,6 +2,11 @@ et_upload cookbook CHANGELOG
 ============================
 This file is used to list changes made in each version of the et_upload cookbook.
 
+v1.2.0
+------
+- Add Serverspec integration tests
+- Tweak ChefSpec tests to use test data bag item, consistent w/ Serverspec
+
 v1.1.0
 ------
 - Add ChefSpec unit tests

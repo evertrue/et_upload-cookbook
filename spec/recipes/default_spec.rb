@@ -6,24 +6,9 @@ describe 'et_upload::default' do
   before do
     stub_command('test -d /opt/evertrue/upload').and_return(0)
 
-    ChefSpec::Server.create_data_bag(
-      'users',
-      'upload' => {
-        'id' => 'upload',
-        'penncharter4616' => {
-          'uid'      => 10_042,
-          'keys'     => 'ssh-key-1',
-          'comment'  => 'Test User 1',
-          'password' => 'password'
-        },
-        'randolphschool6139' => {
-          'uid'      => 10_041,
-          'keys'     => 'ssh-key-2',
-          'comment'  => 'Test User 2',
-          'password' => 'password'
-        }
-      }
-    )
+    upload_users = {}
+    upload_users['upload'] = users_databag_item
+    ChefSpec::Server.create_data_bag('users', upload_users)
   end
 
   it 'includes openssh::default' do

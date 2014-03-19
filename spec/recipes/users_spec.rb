@@ -3,31 +3,16 @@ require 'spec_helper'
 describe 'et_upload::default' do
   let(:chef_run) { ChefSpec::Runner.new.converge(described_recipe) }
 
-  users = {
-    'upload' => {
-      'id' => 'upload',
-      'penncharter4616' => {
-        'uid'      => 10_042,
-        'ssh_keys'     => 'ssh-key-1',
-        'comment'  => 'Test User 1',
-        'password' => 'password'
-      },
-      'randolphschool6139' => {
-        'uid'      => 10_041,
-        'ssh_keys'     => 'ssh-key-2',
-        'comment'  => 'Test User 2',
-        'password' => 'password'
-      }
-    }
-  }
+  upload_users = {}
+  upload_users['upload'] = users_databag_item
 
   before do
     stub_command('test -d /opt/evertrue/upload').and_return(0)
 
-    ChefSpec::Server.create_data_bag('users', users)
+    ChefSpec::Server.create_data_bag('users', upload_users)
   end
 
-  users['upload'].each do |uname, u|
+  upload_users['upload'].each do |uname, u|
     if uname != 'id'
       u['home'] = "/home/#{uname}"
       u['gid']  = 'uploadonly'

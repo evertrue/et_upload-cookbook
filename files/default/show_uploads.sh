@@ -1,5 +1,5 @@
 #!/bin/bash
 
-find /usr/chroot/home/* -iname *.gz -or -iname *.zip -or -iname *.csv;
+find /home/*/uploads -iname *.gz -or -iname *.zip -or -iname *.csv;
 
 exit;

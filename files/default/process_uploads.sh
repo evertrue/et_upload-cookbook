@@ -10,7 +10,7 @@ cd /
 while IFS= read -r -u3 file
 do
   gunzip $file
-done 3< <(find /usr/chroot/home/* -iname *.gz)
+done 3< <(find /home/*/uploads -iname *.gz)
 
 while IFS= read -r -u3 file
 do
@@ -18,12 +18,12 @@ do
   if [[ $? == 0 ]]; then
     rm -f $file
   fi
-done 3< <(find /usr/chroot/home/* -iname *.zip)
+done 3< <(find /home/*/uploads -iname *.zip)
 
 while IFS= read -r -u3 file
 do
-    oid=`echo $file | perl -pe 's|/usr/chroot/home/(.*?)\d+/.*$|\1|'`
-    filename=`echo $file | perl -pe 's|/usr/chroot/home/(.*?)\d+/(uploads/)*(.*)$|\3|'`
+    oid=`echo $file | perl -pe 's|/home/(.*?)\d+/.*$|\1|'`
+    filename=`echo $file | perl -pe 's|/home/(.*?)\d+/(uploads/)*(.*)$|\3|'`
     echo "Found file $file for $oid ... uploading to importer $(date)"
     dna=`curl "https://api.evertrue.com/1.0/$oid/dna/ET.Importer.IngestionMode"`
     auto=`echo $dna | grep AutoIngest`
@@ -60,6 +60,6 @@ do
         echo "Ignoring autoprocessing...";
     fi
     echo ""
-done 3< <(find /usr/chroot/home/* -iname *.csv)
+done 3< <(find /home/*/uploads -iname *.csv)
 
 exit;

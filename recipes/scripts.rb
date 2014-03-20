@@ -25,7 +25,7 @@
   end
 end
 
-%w(provision_user.sh show_uploads.sh process_uploads.sh).each do |file|
+%w(generate_random_user_and_pass.sh show_uploads.sh process_uploads.sh).each do |file|
   cookbook_file file do
     path "/opt/evertrue/upload/#{file}"
     owner 'root'

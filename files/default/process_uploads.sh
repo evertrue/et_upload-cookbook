@@ -10,7 +10,7 @@ cd /
 while IFS= read -r -u3 file
 do
   gunzip $file
-done 3< <(/bin/find /usr/chroot/home/* -iname *.gz)
+done 3< <(find /usr/chroot/home/* -iname *.gz)
 
 while IFS= read -r -u3 file
 do
@@ -18,7 +18,7 @@ do
   if [[ $? == 0 ]]; then
     rm -f $file
   fi
-done 3< <(/bin/find /usr/chroot/home/* -iname *.zip)
+done 3< <(find /usr/chroot/home/* -iname *.zip)
 
 while IFS= read -r -u3 file
 do
@@ -60,6 +60,6 @@ do
         echo "Ignoring autoprocessing...";
     fi
     echo ""
-done 3< <(/bin/find /usr/chroot/home/* -iname *.csv)
+done 3< <(find /usr/chroot/home/* -iname *.csv)
 
 exit;

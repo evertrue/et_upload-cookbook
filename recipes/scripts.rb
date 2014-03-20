@@ -18,7 +18,7 @@
 #
 
 package 'ruby1.9.1'
-gem 'aws-sdk'
+gem_package 'aws-sdk'
 
 %w(/opt/evertrue/upload /var/evertrue/uploads).each do |path|
   directory path do

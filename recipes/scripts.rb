@@ -65,5 +65,4 @@ cron_d 'clean_uploads' do
   user    'root'
   shell    shell
   path     path
-  mailto   mailto
 end

@@ -2,6 +2,10 @@ et_upload cookbook CHANGELOG
 ============================
 This file is used to list changes made in each version of the et_upload cookbook.
 
+v1.3.1
+------
+- Fix name of script that had been renamed
+
 v1.3.0
 ------
 - Add Ehren to cronjob notifications

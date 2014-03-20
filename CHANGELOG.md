@@ -2,6 +2,14 @@ et_upload cookbook CHANGELOG
 ============================
 This file is used to list changes made in each version of the et_upload cookbook.
 
+v1.3.0
+------
+- Add Ehren to cronjob notifications
+- Remove email notification for cleanup cronjob
+- Refactor user provision script to a username & password generation script
+- Change path for `find` to be relative
+- Fix path to uploads users' home folders
+
 v1.2.0
 ------
 - Add Serverspec integration tests

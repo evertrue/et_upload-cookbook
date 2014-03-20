@@ -25,8 +25,8 @@ done 3< <(find <% Array(@unames).each do |uname| %>/home/<%= uname %> <% end -%>
 
 while IFS= read -r -u3 file
 do
-    oid=`echo $file | perl -pe 's|/usr/chroot/home/(.*?)\d+/.*$|\1|'`
-    filename=`echo $file | perl -pe 's|/usr/chroot/home/(.*?)\d+/(uploads/)*(.*)$|\3|'`
+    oid=`echo $file | perl -pe 's|/home/(.*?)\d+/.*$|\1|'`
+    filename=`echo $file | perl -pe 's|/home/(.*?)\d+/(uploads/)*(.*)$|\3|'`
     echo "Found file $file for $oid ... uploading to importer $(date)"
     dna=`curl "https://api.evertrue.com/1.0/$oid/dna/ET.Importer.IngestionMode"`
     auto=`echo $dna | grep AutoIngest`

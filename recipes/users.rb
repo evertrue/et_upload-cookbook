@@ -21,7 +21,25 @@ group 'uploadonly' do
   action :create
 end
 
+directory "/opt/evertrue/upload" do
+  owner 'root'
+  group 'root'
+  recursive true
+end
+
 upload_users = data_bag_item('users', 'upload')
+unames = upload_users.keys.select{|uname| uname != 'id'}
+
+%w(show_uploads process_uploads).each do |file|
+  template "/opt/evertrue/upload/#{file}.sh" do
+    source "#{file}.erb"
+    owner 'root'
+    group 'root'
+    mode '0755'
+    variables unames: unames
+    only_if 'test -d /opt/evertrue/upload'
+  end
+end
 
 upload_users.each do |uname, u|
   if uname != 'id'

@@ -61,7 +61,7 @@ describe 'Upload Scripts' do
     its(:content) { should include mailto }
 
     its(:content) do
-      should include '15 0 * * * root /bin/find /var/evertrue/uploads/* -mtime +7 -exec /bin/rm {} \;'
+      should include '15 0 * * * root find /var/evertrue/uploads/* -mtime +7 -exec /bin/rm {} \;'
     end
   end
 end

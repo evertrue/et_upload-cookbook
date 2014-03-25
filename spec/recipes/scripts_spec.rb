@@ -20,7 +20,18 @@ describe 'et_upload::default' do
     end
   end
 
-  %w(generate_random_user_and_pass.sh show_uploads.sh process_uploads.sh).each do |file|
+  %w(show_uploads process_uploads).each do |file|
+    it "creates file #{file}.sh from template" do
+      expect(chef_run).to create_template("/opt/evertrue/upload/#{file}.sh").with(
+        source: "#{file}.erb",
+        user: 'root',
+        group: 'root',
+        mode: '0755'
+      )
+    end
+  end
+
+  %w(generate_random_user_and_pass.sh).each do |file|
     it "creates file #{file}" do
       expect(chef_run).to create_cookbook_file(file).with(
         user: 'root',

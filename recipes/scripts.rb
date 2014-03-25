@@ -28,6 +28,19 @@ gem_package 'aws-sdk'
   end
 end
 
+unames = data_bag_item('users', 'upload').keys.select{|uname| uname != 'id'}
+
+%w(show_uploads process_uploads).each do |file|
+  template "/opt/evertrue/upload/#{file}.sh" do
+    source "#{file}.erb"
+    owner 'root'
+    group 'root'
+    mode '0755'
+    variables unames: unames
+    only_if 'test -d /opt/evertrue/upload'
+  end
+end
+
 %w(generate_random_user_and_pass.sh).each do |file|
   cookbook_file file do
     path "/opt/evertrue/upload/#{file}"

@@ -1,5 +1,8 @@
 require 'spec_helper'
 
+upload_users_file = File.open('/tmp/kitchen/data_bags/users/upload.json').read
+upload_users = JSON.parse(upload_users_file).select { |uname| uname != 'id' }
+
 describe 'SSH Service' do
   %w(22 43827).each do |port|
     describe port(port) do
@@ -49,6 +52,10 @@ describe 'Upload Scripts' do
       it { should be_mode 755 }
       it { should be_owned_by 'root' }
       it { should be_grouped_into 'root' }
+
+      upload_users.keys.each do |uname|
+        its(:content) { should include uname }
+      end
     end
 
     describe file("/etc/cron.d/#{script}") do
@@ -79,9 +86,6 @@ describe 'Upload users' do
   describe group('uploadonly') do
     it { should exist }
   end
-
-  upload_users_file = File.open('/tmp/kitchen/data_bags/users/upload.json').read
-  upload_users = JSON.parse(upload_users_file).select { |uname| uname != 'id' }
 
   upload_users.each do |uname, u|
     u['home'] = "/home/#{uname}"

@@ -11,6 +11,16 @@ describe 'et_upload::default' do
     ChefSpec::Server.create_data_bag('users', upload_users)
   end
 
+  %w(ruby1.9.1 ruby1.9.1-dev).each do |pkg|
+    it "installs #{pkg}" do
+      expect(chef_run).to install_package(pkg)
+    end
+  end
+
+  it 'installs RubyGem aws-sdk' do
+    expect(chef_run).to install_gem_package('aws-sdk')
+  end
+
   %w(/opt/evertrue/upload /var/evertrue/uploads).each do |path|
     it "creates directory #{path}" do
       expect(chef_run).to create_directory(path).with(

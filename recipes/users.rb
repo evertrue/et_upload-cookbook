@@ -45,7 +45,7 @@ upload_users.each do |uname, u|
   end
 
   ["#{u['home']}/.ssh", "#{u['home']}/uploads"].each do |dir|
-    mode = uname == 'trial-user' && dir == "#{u['home']}/uploads" ? '0300' : '0700'
+    mode = uname.include?('trial') && dir.include?('uploads') ? '0300' : '0700'
 
     directory dir do
       owner uname

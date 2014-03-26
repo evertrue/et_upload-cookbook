@@ -28,7 +28,7 @@ gem_package 'aws-sdk'
   end
 end
 
-unames = data_bag_item('users', 'upload').keys.select{|uname| uname != 'id'}
+unames = data_bag_item('users', 'upload').keys.select { |uname| uname != 'id' }
 
 %w(show_uploads process_uploads).each do |file|
   template "/opt/evertrue/upload/#{file}.sh" do

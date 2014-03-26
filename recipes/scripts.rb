@@ -22,7 +22,9 @@ when 'debian'
   include_recipe 'apt'
 end
 
-package 'ruby1.9.1'
+%w(ruby1.9.1 ruby1.9.1-dev).each do |pkg|
+  package pkg
+end
 gem_package 'aws-sdk'
 
 %w(/opt/evertrue/upload /var/evertrue/uploads).each do |path|

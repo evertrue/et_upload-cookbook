@@ -9,8 +9,9 @@ require 'fileutils'
 require 'net/http'
 require 'uri'
 require 'json'
+require 'zlib'
 
-def get_dna org_slug, key
+def get_dna(org_slug, key)
   uri = URI.parse(URI.encode("https://api.evertrue.com/1.0/#{org_slug}/dna/#{key}"))
   http = Net::HTTP.new(uri.host, uri.port)
   http.use_ssl = true
@@ -22,17 +23,45 @@ def get_dna org_slug, key
   body["response"]["data"]
 end
 
-def process org_slug, path, compression
+def send_to_new_importer(org_slug, path, compression, is_full_import)
+end
+
+def send_to_legacy_importer(org_slug, path, compression, is_full_import)
+end
+
+def compress_if_not_already(path, compression)
+  if compression != "CSV"
+    return path
+  end
+
+  Zlib::GzipWriter.open("#{path}.gz", Zlib::BEST_COMPRESSION) do |gz|
+    gz.mtime = File.mtime(path)
+    gz.orig_name = File.basename(path)
+    gz.write(File.binread(path))
+  end
+
+  FileUtils.rm(path)
+  "#{path}.gz"
+end
+
+def process(org_slug, path, compression)
   # check file is open
 
-  FileUtils.chmod(0700, path)
-  FileUtils.chown('root', 'root', path)
+  is_full_import = (File.basename(path) =~ /\.full\./i)
 
-  # check routing key
+  to_new_importer = !get_dna(org_slug, "ET.Routing.Upload.Importer2").to_i.zero?
 
-  # check full import
+  if to_new_importer
+    send_to_new_importer(org_slug, path, compression, is_full_import)
+  else
+    send_to_legacy_importer(org_slug, path, compression, is_full_import)
+  end
 
-  FileUtils.mv(path, '/var/evertrue/uploads')
+  compressed_path = compress_if_not_already(path, compression)
+
+  FileUtils.chmod(0700, compressed_path)
+  FileUtils.chown('root', 'root', compressed_path)
+  FileUtils.mv(compressed_path, '/var/evertrue/uploads')
 end
 
 unames = [<% Array(@unames).each do |uname| %>"<%= uname %>", <% end -%>]
@@ -42,11 +71,11 @@ unames.each do |uname|
 
   Find.find("/home/#{uname}/uploads") do |path|
     case path
-    when /.*\.csv$/
+    when /.*\.csv$/i
       process(org_slug, path, "CSV")
-    when /.*\.gz$/
+    when /.*\.gz$/i
       process(org_slug, path, "GZIP")
-    when /.*\.zip$/
+    when /.*\.zip$/i
       process(org_slug, path, "ZIP")
     end
   end

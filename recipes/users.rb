@@ -59,7 +59,7 @@ upload_users.each do |uname, u|
       group u['gid']
       mode '0600'
       variables ssh_keys: u['ssh_keys']
-      only_if u['ssh_keys']
+      only_if { u['ssh_keys'] }
     end
   end
 end

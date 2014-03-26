@@ -45,29 +45,39 @@ def compress_if_not_already(path, compression)
 end
 
 def process(org_slug, path, compression)
-  # check file is open
+  begin
+    # check file is open
 
-  is_full_import = (File.basename(path) =~ /\.full\./i)
+    is_full_import = (File.basename(path) =~ /\.full\./i)
 
-  to_new_importer = !get_dna(org_slug, "ET.Routing.Upload.Importer2").to_i.zero?
+    to_new_importer = !get_dna(org_slug, "ET.Routing.Upload.Importer2").to_i.zero?
 
-  if to_new_importer
-    send_to_new_importer(org_slug, path, compression, is_full_import)
-  else
-    send_to_legacy_importer(org_slug, path, compression, is_full_import)
+    if to_new_importer
+      send_to_new_importer(org_slug, path, compression, is_full_import)
+    else
+      send_to_legacy_importer(org_slug, path, compression, is_full_import)
+    end
+
+    compressed_path = compress_if_not_already(path, compression)
+
+    FileUtils.chmod(0700, compressed_path)
+    FileUtils.chown('root', 'root', compressed_path)
+    FileUtils.mv(compressed_path, '/var/evertrue/uploads')
+
+  rescue Exception => e
+    puts e
   end
-
-  compressed_path = compress_if_not_already(path, compression)
-
-  FileUtils.chmod(0700, compressed_path)
-  FileUtils.chown('root', 'root', compressed_path)
-  FileUtils.mv(compressed_path, '/var/evertrue/uploads')
 end
 
 unames = [<% Array(@unames).each do |uname| %>"<%= uname %>", <% end -%>]
 
 unames.each do |uname|
   org_slug = /(.*?)\d+$/.match(uname)[1]
+
+  auto_ingest = get_dna(org_slug, "ET.Importer.IngestionMode")
+  if auto_ingest.nil? || auto_ingest != "AutoIngest"
+    next
+  end
 
   Find.find("/home/#{uname}/uploads") do |path|
     case path

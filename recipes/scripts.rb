@@ -26,6 +26,7 @@ end
   package pkg
 end
 gem_package 'aws-sdk'
+gem_package 'zip'
 
 %w(/opt/evertrue/upload /var/evertrue/uploads).each do |path|
   directory path do

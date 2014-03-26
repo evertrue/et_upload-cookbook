@@ -10,6 +10,7 @@ require 'net/http'
 require 'uri'
 require 'json'
 require 'zlib'
+require 'zip'
 
 def get_dna(org_slug, key)
   uri = URI.parse(URI.encode("https://api.evertrue.com/1.0/#{org_slug}/dna/#{key}"))
@@ -24,9 +25,33 @@ def get_dna(org_slug, key)
 end
 
 def send_to_new_importer(org_slug, path, compression, is_full_import)
+  # send to s3
+  # post to new importer endpoint
 end
 
 def send_to_legacy_importer(org_slug, path, compression, is_full_import)
+  case compression
+    when "CSV"
+      File.open(path) do |f|
+        send_decompressed_stream_to_legacy_importer(org_slug, f, is_full_import)
+      end
+    when "GZIP"
+      Zlib::GzipReader.open(path) do |gz|
+        send_decompressed_stream_to_legacy_importer(org_slug, gz, is_full_import)
+      end
+    when "ZIP"
+      Zip::ZipFile.open(path) do |zf|
+        zf.each do |f|
+          if f.name =~ /.*\.csv$/i
+            send_decompressed_stream_to_legacy_importer(org_slug, f.get_input_stream, is_full_import)
+          end
+        end
+      end
+  end
+end
+
+def send_decompressed_stream_to_legacy_importer(org_slug, io, is_full_import)
+  # post to legacy importer endpoint
 end
 
 def compress_if_not_already(path, compression)
@@ -46,7 +71,7 @@ end
 
 def process(org_slug, path, compression)
   begin
-    # check file is open
+    # check if file is in transfer
 
     is_full_import = (File.basename(path) =~ /\.full\./i)
 
@@ -57,6 +82,8 @@ def process(org_slug, path, compression)
     else
       send_to_legacy_importer(org_slug, path, compression, is_full_import)
     end
+
+    puts "sent file #{path} for processing"
 
     compressed_path = compress_if_not_already(path, compression)
 
@@ -76,6 +103,7 @@ unames.each do |uname|
 
   auto_ingest = get_dna(org_slug, "ET.Importer.IngestionMode")
   if auto_ingest.nil? || auto_ingest != "AutoIngest"
+    puts "skipped auto-ingestion for #{org_slug}"
     next
   end
 

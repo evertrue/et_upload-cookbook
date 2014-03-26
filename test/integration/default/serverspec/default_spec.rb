@@ -30,9 +30,11 @@ describe 'Upload Scripts' do
     end
   end
 
-  describe package('aws-sdk') do
-    it { should be_installed.by('gem') }
-  end
+  %w(aws-sdk zip).each do |pkg_gem|
+    describe package(pkg_gem) do
+      it { should be_installed.by('gem') }
+    end
+  end    
 
   %w(/opt/evertrue/upload /var/evertrue/uploads).each do |path|
     describe file(path) do

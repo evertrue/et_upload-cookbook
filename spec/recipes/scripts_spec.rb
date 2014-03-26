@@ -17,8 +17,10 @@ describe 'et_upload::default' do
     end
   end
 
-  it 'installs RubyGem aws-sdk' do
-    expect(chef_run).to install_gem_package('aws-sdk')
+  %w(aws-sdk zip).each do |pkg_gem|
+    it "installs RubyGem #{pkg_gem}" do
+      expect(chef_run).to install_gem_package(pkg_gem)
+    end
   end
 
   %w(/opt/evertrue/upload /var/evertrue/uploads).each do |path|

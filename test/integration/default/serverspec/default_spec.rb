@@ -72,47 +72,45 @@ describe 'Upload users' do
   end
 
   upload_users_file = File.open('/tmp/kitchen/data_bags/users/upload.json').read
-  upload_users = JSON.parse(upload_users_file)
+  upload_users = JSON.parse(upload_users_file).select { |uname| uname != 'id' }
 
   upload_users.each do |uname, u|
-    if uname != 'id'
-      u['home'] = "/home/#{uname}"
-      u['gid'] = 'uploadonly'
+    u['home'] = "/home/#{uname}"
+    u['gid'] = 'uploadonly'
 
-      describe user(uname) do
-        it { should exist }
-        it { should belong_to_group 'uploadonly' }
-        it { should have_uid u['uid'] }
-        it { should have_home_directory u['home'] }
-        it { should have_login_shell '/bin/bash' }
+    describe user(uname) do
+      it { should exist }
+      it { should belong_to_group 'uploadonly' }
+      it { should have_uid u['uid'] }
+      it { should have_home_directory u['home'] }
+      it { should have_login_shell '/bin/bash' }
 
-        u['ssh_keys'].each do |ssh_key|
-          it { should have_authorized_key ssh_key }
-        end
+      u['ssh_keys'].each do |ssh_key|
+        it { should have_authorized_key ssh_key }
       end
+    end
 
-      describe file(u['home']) do
+    describe file(u['home']) do
+      it { should be_directory }
+      it { should be_mode 755 }
+      it { should be_owned_by 'root' }
+      it { should be_grouped_into u['gid'] }
+    end
+
+    ["#{u['home']}/.ssh", "#{u['home']}/uploads"].each do |dir|
+      describe file(dir) do
         it { should be_directory }
-        it { should be_mode 755 }
-        it { should be_owned_by 'root' }
+        it { should be_mode 700 }
+        it { should be_owned_by uname }
         it { should be_grouped_into u['gid'] }
       end
+    end
 
-      ["#{u['home']}/.ssh", "#{u['home']}/uploads"].each do |dir|
-        describe file(dir) do
-          it { should be_directory }
-          it { should be_mode 700 }
-          it { should be_owned_by uname }
-          it { should be_grouped_into u['gid'] }
-        end
-      end
-
-      if u['ssh_keys']
-        describe file("#{u['home']}/.ssh/authorized_keys") do
-          it { should be_mode 600 }
-          it { should be_owned_by uname }
-          it { should be_grouped_into u['gid'] }
-        end
+    if u['ssh_keys']
+      describe file("#{u['home']}/.ssh/authorized_keys") do
+        it { should be_mode 600 }
+        it { should be_owned_by uname }
+        it { should be_grouped_into u['gid'] }
       end
     end
   end

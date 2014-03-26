@@ -17,6 +17,9 @@
 # limitations under the License.
 #
 
+package 'ruby1.9.1'
+gem_package 'aws-sdk'
+
 %w(/opt/evertrue/upload /var/evertrue/uploads).each do |path|
   directory path do
     owner 'root'
@@ -25,7 +28,20 @@
   end
 end
 
-%w(generate_random_user_and_pass.sh show_uploads.sh process_uploads.sh).each do |file|
+unames = data_bag_item('users', 'upload').keys.select{|uname| uname != 'id'}
+
+%w(show_uploads process_uploads).each do |file|
+  template "/opt/evertrue/upload/#{file}.sh" do
+    source "#{file}.erb"
+    owner 'root'
+    group 'root'
+    mode '0755'
+    variables unames: unames
+    only_if 'test -d /opt/evertrue/upload'
+  end
+end
+
+%w(generate_random_user_and_pass.sh).each do |file|
   cookbook_file file do
     path "/opt/evertrue/upload/#{file}"
     owner 'root'

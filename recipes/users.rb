@@ -21,46 +21,43 @@ group 'uploadonly' do
   action :create
 end
 
-upload_users = data_bag_item('users', 'upload')
+upload_users = data_bag_item('users', 'upload').select { |uname| uname != 'id' }
 
 upload_users.each do |uname, u|
-  if uname != 'id'
-    u['home'] = "/home/#{uname}"
-    u['gid'] = 'uploadonly'
+  u['home'] = "/home/#{uname}"
+  u['gid'] = 'uploadonly'
 
-    user uname do
-      uid u['uid']
-      gid u['gid']
-      shell '/bin/bash'
-      comment u['comment']
-      password u['password'] if u['password']
-      supports manage_home: true
-      home u['home']
-    end
+  user uname do
+    uid u['uid']
+    gid u['gid']
+    shell '/bin/bash'
+    comment u['comment']
+    password u['password'] if u['password']
+    supports manage_home: true
+    home u['home']
+  end
 
-    directory u['home'] do
-      owner 'root'
+  directory u['home'] do
+    owner 'root'
+    group u['gid']
+    mode '0755'
+    action :create
+  end
+
+  ["#{u['home']}/.ssh", "#{u['home']}/uploads"].each do |dir|
+    directory dir do
+      owner uname
       group u['gid']
-      mode '0755'
-      action :create
+      mode '0700'
     end
+  end
 
-    ["#{u['home']}/.ssh", "#{u['home']}/uploads"].each do |dir|
-      directory dir do
-        owner uname
-        group u['gid']
-        mode '0700'
-      end
-    end
-
-    if u['ssh_keys']
-      template "#{u['home']}/.ssh/authorized_keys" do
-        source 'authorized_keys.erb'
-        owner uname
-        group u['gid']
-        mode '0600'
-        variables ssh_keys: u['ssh_keys']
-      end
-    end
+  template "#{u['home']}/.ssh/authorized_keys" do
+    source 'authorized_keys.erb'
+    owner uname
+    group u['gid']
+    mode '0600'
+    variables ssh_keys: u['ssh_keys']
+    only_if { u['ssh_keys'] }
   end
 end

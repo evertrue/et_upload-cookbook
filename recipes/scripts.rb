@@ -17,7 +17,14 @@
 # limitations under the License.
 #
 
-package 'ruby1.9.1'
+case node['platform_family']
+when 'debian'
+  include_recipe 'apt'
+end
+
+%w(ruby1.9.1 ruby1.9.1-dev).each do |pkg|
+  package pkg
+end
 gem_package 'aws-sdk'
 
 %w(/opt/evertrue/upload /var/evertrue/uploads).each do |path|
@@ -28,7 +35,7 @@ gem_package 'aws-sdk'
   end
 end
 
-unames = data_bag_item('users', 'upload').keys.select{|uname| uname != 'id'}
+unames = data_bag_item('users', 'upload').keys.select { |uname| uname != 'id' }
 
 %w(show_uploads).each do |file|
   template "/opt/evertrue/upload/#{file}.sh" do

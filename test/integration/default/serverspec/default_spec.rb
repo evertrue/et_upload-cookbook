@@ -21,6 +21,16 @@ describe 'SSH Service' do
 end
 
 describe 'Upload Scripts' do
+  %w(ruby1.9.1 ruby1.9.1-dev).each do |pkg|
+    describe package(pkg) do
+      it { should be_installed }
+    end
+  end
+
+  describe package('aws-sdk') do
+    it { should be_installed.by('gem') }
+  end
+
   %w(/opt/evertrue/upload /var/evertrue/uploads).each do |path|
     describe file(path) do
       it { should be_directory }

@@ -36,11 +36,13 @@ describe 'et_upload::default' do
       end
 
       ["#{u['home']}/.ssh", "#{u['home']}/uploads"].each do |dir|
+        mode = (uname == 'trial-user' && dir == "#{u['home']}/uploads") ? '0300' : '0700'
+
         it "creates #{dir}" do
           expect(chef_run).to create_directory(dir).with(
             user:  uname,
             group: u['gid'],
-            mode:  '0700'
+            mode:  mode
           )
         end
       end

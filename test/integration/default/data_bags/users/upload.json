@@ -11,5 +11,11 @@
     "ssh_keys": [ "ssh-key-2" ],
     "comment": "Test User 2",
     "password": "$6$UiWsps6a$Qxoz2oLDNyrVk1gEhk5CnjzNGnTY6iMYr5GqKK.PMDahmouI2fm8UF8LK.BHqQYgu9dDZ9eTdVEWMT7jzZ3d91"
+  },
+  "trial-user": {
+    "uid": 10040,
+    "ssh_keys": [],
+    "comment": "Shared Trial User",
+    "password": "$6$UiWsps6a$Qxoz2oLDNyrVk1gEhk5CnjzNGnTY6iMYr5GqKK.PMDahmouI2fm8UF8LK.BHqQYgu9dDZ9eTdVEWMT7jzZ3d91"
   }
 }

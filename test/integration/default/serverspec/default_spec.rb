@@ -111,9 +111,11 @@ describe 'Upload users' do
     end
 
     ["#{u['home']}/.ssh", "#{u['home']}/uploads"].each do |dir|
+      mode = (uname == 'trial-user' && dir == "#{u['home']}/uploads") ? 300 : 700
+
       describe file(dir) do
         it { should be_directory }
-        it { should be_mode 700 }
+        it { should be_mode mode }
         it { should be_owned_by uname }
         it { should be_grouped_into u['gid'] }
       end

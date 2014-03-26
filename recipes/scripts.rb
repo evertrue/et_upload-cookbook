@@ -17,6 +17,11 @@
 # limitations under the License.
 #
 
+case node['platform_family']
+when 'debian'
+  include_recipe 'apt'
+end
+
 package 'ruby1.9.1'
 gem_package 'aws-sdk'
 

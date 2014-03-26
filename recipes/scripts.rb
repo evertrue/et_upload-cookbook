@@ -30,8 +30,19 @@ end
 
 unames = data_bag_item('users', 'upload').keys.select{|uname| uname != 'id'}
 
-%w(show_uploads process_uploads).each do |file|
+%w(show_uploads).each do |file|
   template "/opt/evertrue/upload/#{file}.sh" do
+    source "#{file}.erb"
+    owner 'root'
+    group 'root'
+    mode '0755'
+    variables unames: unames
+    only_if 'test -d /opt/evertrue/upload'
+  end
+end
+
+%w(process_uploads).each do |file|
+  template "/opt/evertrue/upload/#{file}.rb" do
     source "#{file}.erb"
     owner 'root'
     group 'root'
@@ -67,7 +78,7 @@ end
 
 cron_d 'process_uploads' do
   minute  0
-  command '/opt/evertrue/upload/process_uploads.sh'
+  command '/opt/evertrue/upload/process_uploads.rb'
   user    'root'
   shell   shell
   path    path

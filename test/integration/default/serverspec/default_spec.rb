@@ -34,7 +34,7 @@ describe 'Upload Scripts' do
   path         = '/sbin:/bin:/usr/sbin:/usr/bin'
   mailto       = 'ehren+upload@evertrue.com,hai.zhou+upload@evertrue.com'
 
-  %w(show_uploads process_uploads).each do |script|
+  %w(show_uploads).each do |script|
     describe file("#{scripts_path}/#{script}.sh") do
       it { should be_mode 755 }
       it { should be_owned_by 'root' }
@@ -46,11 +46,30 @@ describe 'Upload Scripts' do
       its(:content) { should include path }
       its(:content) { should include mailto }
 
-      cron_hour = '*'
-      cron_hour = '*/4' if script == 'show_uploads'
+      cron_hour = '*/4'
 
       its(:content) do
         should include "0 #{cron_hour} * * * root #{scripts_path}/#{script}.sh"
+      end
+    end
+  end
+
+  %w(process_uploads).each do |script|
+    describe file("#{scripts_path}/#{script}.rb") do
+      it { should be_mode 755 }
+      it { should be_owned_by 'root' }
+      it { should be_grouped_into 'root' }
+    end
+
+    describe file("/etc/cron.d/#{script}") do
+      its(:content) { should include shell }
+      its(:content) { should include path }
+      its(:content) { should include mailto }
+
+      cron_hour = '*'
+
+      its(:content) do
+        should include "0 #{cron_hour} * * * root #{scripts_path}/#{script}.rb"
       end
     end
   end

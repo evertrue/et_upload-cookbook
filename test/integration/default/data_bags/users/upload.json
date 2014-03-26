@@ -4,12 +4,12 @@
     "uid": 10042,
     "ssh_keys": [ "ssh-key-1" ],
     "comment": "Test User 1",
-    "password": "password"
+    "password": "$6$UiWsps6a$Qxoz2oLDNyrVk1gEhk5CnjzNGnTY6iMYr5GqKK.PMDahmouI2fm8UF8LK.BHqQYgu9dDZ9eTdVEWMT7jzZ3d91"
   },
   "test-user-2": {
     "uid": 10041,
     "ssh_keys": [ "ssh-key-2" ],
     "comment": "Test User 2",
-    "password": "password"
+    "password": "$6$UiWsps6a$Qxoz2oLDNyrVk1gEhk5CnjzNGnTY6iMYr5GqKK.PMDahmouI2fm8UF8LK.BHqQYgu9dDZ9eTdVEWMT7jzZ3d91"
   }
 }

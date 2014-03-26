@@ -40,6 +40,8 @@ Include `et_upload` in your node's `run_list`:
 }
 ```
 
+For testing purposes, the users upload data bag item exists. The password for each user is `password`, salted & encrypted to best resemble a real password & allow for logging in via SFTP to do manual testing of SFTP functionality.
+
 ## Contributing
 
 1. Fork the repository on Github

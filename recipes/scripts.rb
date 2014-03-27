@@ -25,8 +25,10 @@ end
 %w(ruby1.9.1 ruby1.9.1-dev).each do |pkg|
   package pkg
 end
-gem_package 'aws-sdk'
-gem_package 'zip'
+
+%w(aws-sdk zip multipart-post).each do |gem_pkg|
+  gem_package gem_pkg
+end
 
 %w(/opt/evertrue/upload /var/evertrue/uploads).each do |path|
   directory path do

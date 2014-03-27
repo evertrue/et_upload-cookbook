@@ -7,6 +7,7 @@ require 'aws-sdk'
 require 'find'
 require 'fileutils'
 require 'net/http'
+require 'net/http/post/multipart'
 require 'uri'
 require 'json'
 require 'zlib'
@@ -31,31 +32,38 @@ end
 
 def send_to_legacy_importer(org_slug, path, compression, is_full_import)
   case compression
-    when "CSV"
+    when "NONE"
       File.open(path) do |f|
-        send_decompressed_stream_to_legacy_importer(org_slug, f, is_full_import)
+        send_decompressed_stream_to_legacy_importer(org_slug, path, File.basename(path), f, is_full_import)
       end
     when "GZIP"
       Zlib::GzipReader.open(path) do |gz|
-        send_decompressed_stream_to_legacy_importer(org_slug, gz, is_full_import)
+        send_decompressed_stream_to_legacy_importer(org_slug, path, gz.orig_name, gz, is_full_import)
       end
     when "ZIP"
       Zip::ZipFile.open(path) do |zf|
         zf.each do |f|
           if f.name =~ /.*\.csv$/i
-            send_decompressed_stream_to_legacy_importer(org_slug, f.get_input_stream, is_full_import)
+            send_decompressed_stream_to_legacy_importer(org_slug, path, f.name, f.get_raw_input_stream, is_full_import)
           end
         end
       end
   end
 end
 
-def send_decompressed_stream_to_legacy_importer(org_slug, io, is_full_import)
-  # post to legacy importer endpoint
+def send_decompressed_stream_to_legacy_importer(org_slug, orig_path, file_name, io, is_full_import)
+  uri = URI.parse(URI.encode("https://api.evertrue.com/1.0/#{org_slug}/importjob"))
+  http = Net::HTTP.new(uri.host, uri.port)
+  http.use_ssl = true
+
+  req = Net::HTTP::Post::Multipart.new(uri, "type" => "file", "prune" => (is_full_import ? 1 : 0), "file" => UploadIO.new(io, "text/csv", file_name))
+
+  response = http.request(req)
+  raise "Error sending #{orig_path}. Response: #{response.code}, body: #{response.body}" unless response.code.to_i == 200
 end
 
 def compress_if_not_already(path, compression)
-  if compression != "CSV"
+  if compression != "NONE"
     return path
   end
 
@@ -73,7 +81,7 @@ def process(org_slug, path, compression)
   begin
     # check if file is in transfer
 
-    is_full_import = (File.basename(path) =~ /\.full\./i)
+    is_full_import = !(File.basename(path) =~ /\.full\./i).nil?
 
     to_new_importer = !get_dna(org_slug, "ET.Routing.Upload.Importer2").to_i.zero?
 
@@ -110,7 +118,7 @@ unames.each do |uname|
   Find.find("/home/#{uname}/uploads") do |path|
     case path
     when /.*\.csv$/i
-      process(org_slug, path, "CSV")
+      process(org_slug, path, "NONE")
     when /.*\.gz$/i
       process(org_slug, path, "GZIP")
     when /.*\.zip$/i

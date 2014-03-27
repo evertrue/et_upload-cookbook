@@ -17,7 +17,7 @@ describe 'et_upload::default' do
     end
   end
 
-  %w(aws-sdk zip).each do |pkg_gem|
+  %w(aws-sdk zip multipart-post).each do |pkg_gem|
     it "installs RubyGem #{pkg_gem}" do
       expect(chef_run).to install_gem_package(pkg_gem)
     end

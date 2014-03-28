@@ -26,7 +26,7 @@ end
   package pkg
 end
 
-%w(aws-sdk zip multipart-post).each do |gem_pkg|
+%w(aws-sdk rubyzip multipart-post).each do |gem_pkg|
   gem_package gem_pkg
 end
 

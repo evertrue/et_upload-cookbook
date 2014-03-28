@@ -30,7 +30,7 @@ describe 'Upload Scripts' do
     end
   end
 
-  %w(aws-sdk zip multipart-post).each do |pkg_gem|
+  %w(aws-sdk rubyzip multipart-post).each do |pkg_gem|
     describe package(pkg_gem) do
       it { should be_installed.by('gem') }
     end

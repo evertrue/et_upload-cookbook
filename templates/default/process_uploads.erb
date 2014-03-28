@@ -70,7 +70,9 @@ def compress_if_not_already(path, compression)
   Zlib::GzipWriter.open("#{path}.gz", Zlib::BEST_COMPRESSION) do |gz|
     gz.mtime = File.mtime(path)
     gz.orig_name = File.basename(path)
-    gz.write(File.binread(path))
+    File.open(path) do |f|
+      IO.copy_stream(f, gz)
+    end
   end
 
   FileUtils.rm(path)

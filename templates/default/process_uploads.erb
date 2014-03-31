@@ -89,7 +89,7 @@ end
 
 def process(org_slug, path, compression)
   begin
-    # check if file is in transfer
+    return if !`lsof #{path}`.empty?
 
     is_full_import = !(File.basename(path) =~ /\.full\./i).nil?
 

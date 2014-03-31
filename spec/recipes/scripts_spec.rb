@@ -17,8 +17,10 @@ describe 'et_upload::default' do
     end
   end
 
-  it 'installs RubyGem aws-sdk' do
-    expect(chef_run).to install_gem_package('aws-sdk')
+  %w(aws-sdk rubyzip multipart-post).each do |pkg_gem|
+    it "installs RubyGem #{pkg_gem}" do
+      expect(chef_run).to install_gem_package(pkg_gem)
+    end
   end
 
   %w(/opt/evertrue/upload /var/evertrue/uploads).each do |path|
@@ -30,9 +32,20 @@ describe 'et_upload::default' do
     end
   end
 
-  %w(show_uploads process_uploads).each do |file|
+  %w(show_uploads).each do |file|
     it "creates file #{file}.sh from template" do
       expect(chef_run).to create_template("/opt/evertrue/upload/#{file}.sh").with(
+        source: "#{file}.erb",
+        user: 'root',
+        group: 'root',
+        mode: '0755'
+      )
+    end
+  end
+
+  %w(process_uploads).each do |file|
+    it "creates file #{file}.rb from template" do
+      expect(chef_run).to create_template("/opt/evertrue/upload/#{file}.rb").with(
         source: "#{file}.erb",
         user: 'root',
         group: 'root',

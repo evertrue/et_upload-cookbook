@@ -18,7 +18,7 @@ def get_dna(org_slug, key)
   http = Net::HTTP.new(uri.host, uri.port)
   http.use_ssl = true
 
-  req = Net::HTTP::Get.new(uri)
+  req = Net::HTTP::Get.new(uri.path)
   response = http.request(req)
 
   body = JSON.parse(response.body)
@@ -34,32 +34,40 @@ def send_to_legacy_importer(org_slug, path, compression, is_full_import)
   case compression
     when "NONE"
       File.open(path) do |f|
-        send_decompressed_stream_to_legacy_importer(org_slug, path, File.basename(path), f, is_full_import)
+        send_decompressed_stream_to_legacy_importer(org_slug, path, is_full_import)
       end
     when "GZIP"
       Zlib::GzipReader.open(path) do |gz|
-        send_decompressed_stream_to_legacy_importer(org_slug, path, gz.orig_name, gz, is_full_import)
+        extractPath = "#{File.dirname(path)}/#{gz.orig_name}"
+        File.open(extractPath, "w+") do |f|
+          IO.copy_stream(gz, f)
+        end
+        send_decompressed_stream_to_legacy_importer(org_slug, extractPath, is_full_import)
+        FileUtils.rm(extractPath)
       end
     when "ZIP"
       Zip::File.open(path) do |zf|
         zf.each do |f|
           if f.name =~ /.*\.csv$/i
-            send_decompressed_stream_to_legacy_importer(org_slug, path, f.name, f.get_input_stream, is_full_import)
+            extractPath = "#{File.dirname(path)}/#{f.name}"
+            f.extract(extractPath)
+            send_decompressed_stream_to_legacy_importer(org_slug, extractPath, is_full_import)
+            FileUtils.rm(extractPath)
           end
         end
       end
   end
 end
 
-def send_decompressed_stream_to_legacy_importer(org_slug, orig_path, file_name, io, is_full_import)
+def send_decompressed_stream_to_legacy_importer(org_slug, path, is_full_import)
   uri = URI.parse(URI.encode("https://api.evertrue.com/1.0/#{org_slug}/importjob"))
   http = Net::HTTP.new(uri.host, uri.port)
   http.use_ssl = true
 
-  req = Net::HTTP::Post::Multipart.new(uri.path, "type" => "file", "prune" => (is_full_import ? 1 : 0), "file" => UploadIO.new(io, "text/csv", file_name))
+  req = Net::HTTP::Post::Multipart.new(uri.path, "type" => "file", "prune" => (is_full_import ? 1 : 0), "file" => UploadIO.new(path, "text/csv"))
 
   response = http.request(req)
-  raise "Error sending #{orig_path}. Response: #{response.code}, body: #{response.body}" unless response.code.to_i == 200
+  raise "Error sending #{path}. Response: #{response.code}, body: #{response.body}" unless response.code.to_i == 200
 end
 
 def compress_if_not_already(path, compression)

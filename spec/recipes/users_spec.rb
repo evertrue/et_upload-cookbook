@@ -4,7 +4,7 @@ describe 'et_upload::default' do
   let(:chef_run) { ChefSpec::Runner.new.converge(described_recipe) }
 
   upload_users = {}
-  upload_users['upload'] = users_databag_item
+  upload_users['upload'] = data_bag_item('users', 'upload')
 
   before do
     stub_command('test -d /opt/evertrue/upload').and_return(0)

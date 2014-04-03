@@ -7,7 +7,7 @@ describe 'et_upload::default' do
     stub_command('test -d /opt/evertrue/upload').and_return(0)
 
     upload_users = {}
-    upload_users['upload'] = users_databag_item
+    upload_users['upload'] = data_bag_item('users', 'upload')
     ChefSpec::Server.create_data_bag('users', upload_users)
   end
 

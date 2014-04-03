@@ -23,13 +23,13 @@ def get_dna(org_slug, key)
   response = http.request(req)
 
   body = JSON.parse(response.body)
-  body["response"]["data"]
+  body['response']['data']
 end
 
 def send_to_new_importer(org_slug, path, compression, is_full_import)
   s3 = AWS::S3.new(:access_key_id => '<%= @aws_access_key_id %>', :secret_access_key => '<%= @aws_secret_access_key %>')
   bucket = s3.buckets['onboarding.evertrue.com']
-  now = DateTime.now.strftime("%Q")
+  now = DateTime.now.strftime('%Q')
   s3_filename = "#{now}-#{File.basename(path)}"
   bucket.objects["#{org_slug}/data/#{s3_filename}"].write(Pathname.new(path))
 
@@ -51,7 +51,7 @@ def get_oid(org_slug, app_key, auth)
   response = http.request(req)
 
   body = JSON.parse(response.body)
-  body["id"]
+  body['id']
 end
 
 def post_to_new_importer(oid, s3_filename, compression, is_full_import, app_key, auth)
@@ -60,14 +60,18 @@ def post_to_new_importer(oid, s3_filename, compression, is_full_import, app_key,
   http.use_ssl = true
 
   req = Net::HTTP::Post.new(uri.request_uri)
-  req["Content-Type"] = "application/json"
-  req.body = {"s3_filename" => s3_filename, "compression" => compression, "prune" => is_full_import}
+  req['Content-Type'] = 'application/json'
+  req.body = {
+    's3_filename' => s3_filename,
+    'compression' => compression,
+    'prune' => is_full_import
+  }
 
   response = http.request(req)
   raise "Error sending oid: #{oid}, file: #{s3_filename}. Response: #{response.code}, body: #{response.body}" unless response.code.to_i == 200
 
   body = JSON.parse(response.body)
-  body["id"]
+  body['id']
 end
 
 def queue_to_new_importer(oid, job_id, app_key, auth)
@@ -83,20 +87,20 @@ end
 
 def send_to_legacy_importer(org_slug, path, compression, is_full_import)
   case compression
-    when "NONE"
+    when 'NONE'
       File.open(path) do |f|
         post_to_legacy_importer(org_slug, path, is_full_import)
       end
-    when "GZIP"
+    when 'GZIP'
       Zlib::GzipReader.open(path) do |gz|
         extractPath = "#{File.dirname(path)}/#{gz.orig_name}"
-        File.open(extractPath, "w+") do |f|
+        File.open(extract_path, 'w+') do |f|
           IO.copy_stream(gz, f)
         end
         post_to_legacy_importer(org_slug, extractPath, is_full_import)
         FileUtils.rm(extractPath)
       end
-    when "ZIP"
+    when 'ZIP'
       Zip::File.open(path) do |zf|
         zf.each do |f|
           if f.name =~ /.*\.csv$/i
@@ -115,7 +119,12 @@ def post_to_legacy_importer(org_slug, path, is_full_import)
   http = Net::HTTP.new(uri.host, uri.port)
   http.use_ssl = true
 
-  req = Net::HTTP::Post::Multipart.new(uri.request_uri, "type" => "file", "prune" => (is_full_import ? 1 : 0), "file" => UploadIO.new(path, "text/csv"))
+  req = Net::HTTP::Post::Multipart.new(
+    uri.request_uri,
+    'type' => 'file',
+    'prune' => (is_full_import ? 1 : 0),
+    'file' => UploadIO.new(path, 'text/csv')
+  )
 
   response = http.request(req)
   raise "Error sending #{path}. Response: #{response.code}, body: #{response.body}" unless response.code.to_i == 200
@@ -143,7 +152,7 @@ def process(org_slug, path, compression)
 
   is_full_import = !(File.basename(path) =~ /\.full\./i).nil?
 
-  to_new_importer = !get_dna(org_slug, "ET.Routing.Upload.Importer2").to_i.zero?
+  to_new_importer = !get_dna(org_slug, 'ET.Routing.Upload.Importer2').to_i.zero?
 
   if to_new_importer
     send_to_new_importer(org_slug, path, compression, is_full_import)
@@ -165,8 +174,8 @@ unames = [<% Array(@unames).each do |uname| %>"<%= uname %>", <% end -%>]
 unames.each do |uname|
   org_slug = /(.*?)\d+$/.match(uname)[1]
 
-  auto_ingest = get_dna(org_slug, "ET.Importer.IngestionMode")
-  if auto_ingest.nil? || auto_ingest != "AutoIngest"
+  auto_ingest = get_dna(org_slug, 'ET.Importer.IngestionMode')
+  if auto_ingest.nil? || auto_ingest != 'AutoIngest'
     puts "skipped auto-ingestion for #{org_slug}"
     next
   end
@@ -175,11 +184,11 @@ unames.each do |uname|
     begin
       case path
       when /.*\.csv$/i
-        process(org_slug, path, "NONE")
+        process(org_slug, path, 'NONE')
       when /.*\.gz$/i
-        process(org_slug, path, "GZIP")
+        process(org_slug, path, 'GZIP')
       when /.*\.zip$/i
-        process(org_slug, path, "ZIP")
+        process(org_slug, path, 'ZIP')
       end
     rescue => e
       puts e

@@ -45,7 +45,7 @@ describe 'Upload Scripts' do
   scripts_path = '/opt/evertrue/upload'
   shell        = '/bin/bash'
   path         = '/sbin:/bin:/usr/sbin:/usr/bin'
-  mailto       = 'ehren+upload@evertrue.com,hai.zhou+upload@evertrue.com'
+  mailto       = 'hai.zhou+upload@evertrue.com'
 
   %w(show_uploads process_uploads).each do |script|
     describe file("#{scripts_path}/#{script}.sh") do

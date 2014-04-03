@@ -96,21 +96,21 @@ def send_to_legacy_importer(org_slug, path, compression, is_full_import)
       end
     when 'GZIP'
       Zlib::GzipReader.open(path) do |gz|
-        extractPath = "#{File.dirname(path)}/#{gz.orig_name}"
+        extract_path = "#{File.dirname(path)}/#{gz.orig_name}"
         File.open(extract_path, 'w+') do |f|
           IO.copy_stream(gz, f)
         end
-        post_to_legacy_importer(org_slug, extractPath, is_full_import)
-        FileUtils.rm(extractPath)
+        post_to_legacy_importer(org_slug, extract_path, is_full_import)
+        FileUtils.rm(extract_path)
       end
     when 'ZIP'
       Zip::File.open(path) do |zf|
         zf.each do |f|
           if f.name =~ /.*\.csv$/i
-            extractPath = "#{File.dirname(path)}/#{f.name}"
-            f.extract(extractPath)
-            post_to_legacy_importer(org_slug, extractPath, is_full_import)
-            FileUtils.rm(extractPath)
+            extract_path = "#{File.dirname(path)}/#{f.name}"
+            f.extract(extract_path)
+            post_to_legacy_importer(org_slug, extract_path, is_full_import)
+            FileUtils.rm(extract_path)
           end
         end
       end

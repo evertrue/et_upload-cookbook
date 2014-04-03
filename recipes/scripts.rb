@@ -44,14 +44,16 @@ s3_creds = Chef::EncryptedDataBagItem.load(
   'secrets',
   'aws_credentials'
 )["Upload-#{node.chef_environment}"]
-aws_access_key_id = s3_creds['access_key_id']
+
+aws_access_key_id     = s3_creds['access_key_id']
 aws_secret_access_key = s3_creds['secret_access_key']
 
 upload_creds = Chef::EncryptedDataBagItem.load(
   'secrets',
   'internal_app_creds'
 )["Upload-#{node.chef_environment}"]
-upload_app_key = upload_creds['app_key']
+
+upload_app_key    = upload_creds['app_key']
 upload_auth_token = upload_creds['auth_token']
 
 %w(show_uploads).each do |file|
@@ -71,8 +73,13 @@ end
     owner 'root'
     group 'root'
     mode '0755'
-    variables unames: unames, aws_access_key_id: aws_access_key_id, aws_secret_access_key: aws_secret_access_key, upload_app_key: upload_app_key, upload_auth_token: upload_auth_token
-
+    variables(
+      unames:                unames,
+      aws_access_key_id:     aws_access_key_id,
+      aws_secret_access_key: aws_secret_access_key,
+      upload_app_key:        upload_app_key,
+      upload_auth_token:     upload_auth_token
+    )
     only_if 'test -d /opt/evertrue/upload'
   end
 end

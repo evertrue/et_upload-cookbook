@@ -172,7 +172,7 @@ def process(org_slug, path, compression)
   FileUtils.mv(compressed_path, '/var/evertrue/uploads')
 end
 
-unames = [<% Array(@unames).each do |uname| %>"<%= uname %>", <% end -%>]
+unames = %w(<% Array(@unames).each do |uname| %><%= uname %> <% end -%>)
 
 unames.each do |uname|
   org_slug = /(.*?)\d+$/.match(uname)[1]

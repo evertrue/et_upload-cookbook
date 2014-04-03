@@ -34,7 +34,7 @@ describe 'Upload Scripts' do
     describe package(pkg_gem) do
       it { should be_installed.by('gem') }
     end
-  end    
+  end
 
   %w(/opt/evertrue/upload /var/evertrue/uploads).each do |path|
     describe file(path) do
@@ -49,8 +49,8 @@ describe 'Upload Scripts' do
   path         = '/sbin:/bin:/usr/sbin:/usr/bin'
   mailto       = 'hai.zhou+upload@evertrue.com'
 
-  %w(show_uploads).each do |script|
-    describe file("#{scripts_path}/#{script}.sh") do
+  %w(show_uploads.sh process_uploads.rb).each do |script|
+    describe file("#{scripts_path}/#{script}") do
       it { should be_mode 755 }
       it { should be_owned_by 'root' }
       it { should be_grouped_into 'root' }
@@ -65,31 +65,19 @@ describe 'Upload Scripts' do
       its(:content) { should include path }
       its(:content) { should include mailto }
 
-      cron_hour = '*/4'
+      cron_hour = '*'
+      cron_hour = '*/4' if script == 'show_uploads'
 
       its(:content) do
-        should include "0 #{cron_hour} * * * root #{scripts_path}/#{script}.sh"
+        should include "0 #{cron_hour} * * * root #{scripts_path}/#{script}"
       end
     end
   end
 
-  %w(process_uploads).each do |script|
-    describe file("#{scripts_path}/#{script}.rb") do
-      it { should be_mode 755 }
-      it { should be_owned_by 'root' }
-      it { should be_grouped_into 'root' }
-    end
-
-    describe file("/etc/cron.d/#{script}") do
-      its(:content) { should include shell }
-      its(:content) { should include path }
-      its(:content) { should include mailto }
-
-      cron_hour = '*'
-
-      its(:content) do
-        should include "0 #{cron_hour} * * * root #{scripts_path}/#{script}.rb"
-      end
+  describe file("#{scripts_path}/process_uploads.rb") do
+    its(:content) do
+      should include 'UPLOAD_TEST_KEY'
+      should include 'UPLOAD_TEST_SECRET'
     end
   end
 

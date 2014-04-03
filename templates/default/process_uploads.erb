@@ -149,7 +149,7 @@ def compress_if_not_already(path, compression)
 end
 
 def process(org_slug, path, compression)
-  return if !`lsof #{path}`.empty?
+  return unless `lsof #{path}`.empty?
 
   is_full_import = !(File.basename(path) =~ /\.full\./i).nil?
 

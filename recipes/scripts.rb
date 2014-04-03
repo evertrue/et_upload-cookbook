@@ -89,7 +89,7 @@ end
 
 shell  = '/bin/bash'
 path   = '/sbin:/bin:/usr/sbin:/usr/bin'
-mailto = 'ehren+upload@evertrue.com,hai.zhou+upload@evertrue.com'
+mailto = 'hai.zhou+upload@evertrue.com'
 
 cron_d 'show_uploads' do
   minute  0

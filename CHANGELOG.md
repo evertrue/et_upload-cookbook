@@ -2,6 +2,15 @@ et_upload cookbook CHANGELOG
 ============================
 This file is used to list changes made in each version of the et_upload cookbook.
 
+v1.5.1
+------
+- Adjust code so any user with a username includes the string `trial` is treated as a shared trial user
+
+v1.5.0
+------
+- Add `trial-user` shared SFTP account to use for trial customers to improve security
+- Adjust tests to check permissions properly for `trial-user` uploads directory
+
 v1.4.0
 ------
 - Refactor scripts to only search users based on upload users data bag item content

@@ -10,7 +10,21 @@ A cookbook to provision an SFTP server which a collection of chroot jailed users
 
 Key                      | Type    | Description              | Default
 ---                      | ----    | -----------              | -------
-`['et_upload']['bacon']` | Boolean | whether to include bacon | `true`
+`['openssh']['server']['port']`                    | Array  | Ports OpenSSH listens on           | `%w(22 43827)`
+`['openssh']['server']['permit_root_login']`       | String | Allow remote root logins           | `'no'`
+`['openssh']['server']['password_authentication']` | String | Allow password logins              | `'yes'`
+`['openssh']['server']['subsystem']`               | String | Set a subsystem for OpenSSH        | `'sftp /usr/lib/sftp-server'`
+`['openssh']['server']['match']`                   | Hash   | Provide a match config for OpenSSH | see below
+
+```ruby
+set['openssh']['server']['match'] = {
+  'Group uploadonly' => {
+    'chroot_directory' => '%h',
+    'force_command' => 'internal-sftp',
+    'allow_tcp_forwarding' => 'no'
+  }
+}
+```
 
 ## Usage
 
@@ -25,6 +39,8 @@ Include `et_upload` in your node's `run_list`:
   ]
 }
 ```
+
+For testing purposes, the users upload data bag item exists. The password for each user is `password`, salted & encrypted to best resemble a real password & allow for logging in via SFTP to do manual testing of SFTP functionality.
 
 ## Contributing
 

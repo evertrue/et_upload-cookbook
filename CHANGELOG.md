@@ -2,6 +2,10 @@ et_upload cookbook CHANGELOG
 ============================
 This file is used to list changes made in each version of the et_upload cookbook.
 
+v1.6.0
+------
+- Remove @ehrenfoss from cronjob MAILTO notifications
+
 v1.5.1
 ------
 - Adjust code so any user with a username includes the string `trial` is treated as a shared trial user

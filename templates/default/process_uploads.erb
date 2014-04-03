@@ -134,9 +134,7 @@ def post_to_legacy_importer(org_slug, path, is_full_import)
 end
 
 def compress_if_not_already(path, compression)
-  if compression != "NONE"
-    return path
-  end
+  return path if compression != 'NONE'
 
   Zlib::GzipWriter.open("#{path}.gz", Zlib::BEST_COMPRESSION) do |gz|
     gz.mtime = File.mtime(path)

@@ -50,7 +50,7 @@ aws_secret_access_key = s3_creds['secret_access_key']
 
 upload_creds = Chef::EncryptedDataBagItem.load(
   'secrets',
-  'internal_app_creds'
+  'api_keys'
 )[node.chef_environment]['importer']['upload']
 
 upload_app_key    = upload_creds['app_key']

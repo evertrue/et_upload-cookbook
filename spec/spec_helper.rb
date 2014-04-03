@@ -19,6 +19,8 @@ def setup_environment
   stub_command('test -d /opt/evertrue/upload').and_return(0)
 
   ChefSpec::Server.create_data_bag('users', data_bag('users'))
+  secrets_encrypted_data_bag_item('aws_credentials')
+  secrets_encrypted_data_bag_item('api_keys')
 end
 
 def data_bag(name)
@@ -32,3 +34,33 @@ def data_bag(name)
   data_bag
 end
 
+def secrets_encrypted_data_bag_item(item)
+  contents = {}
+
+  if item == 'aws_credentials'
+    contents = {
+      'id' => 'aws_credentials',
+      'Upload-_default' => {
+        'access_key_id' => 'UPLOAD_TEST_KEY',
+        'secret_access_key' => 'UPLOAD_TEST_SECRET'
+      }
+    }
+  elsif item == 'api_keys'
+    contents = {
+      '_default' => {
+        'importer' => {
+          'upload' => {
+            'app_key'    => 'abc123',
+            'auth_token' => 'secret'
+          }
+        }
+      }
+    }
+  else
+    fail 'Invalid data bag item specified.'
+  end
+
+  Chef::EncryptedDataBagItem.stub(:load)
+    .with('secrets', item)
+    .and_return(contents)
+end

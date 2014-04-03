@@ -90,30 +90,30 @@ end
 
 def send_to_legacy_importer(org_slug, path, compression, is_full_import)
   case compression
-    when 'NONE'
-      File.open(path) do |f|
-        post_to_legacy_importer(org_slug, path, is_full_import)
+  when 'NONE'
+    File.open(path) do |f|
+      post_to_legacy_importer(org_slug, path, is_full_import)
+    end
+  when 'GZIP'
+    Zlib::GzipReader.open(path) do |gz|
+      extract_path = "#{File.dirname(path)}/#{gz.orig_name}"
+      File.open(extract_path, 'w+') do |f|
+        IO.copy_stream(gz, f)
       end
-    when 'GZIP'
-      Zlib::GzipReader.open(path) do |gz|
-        extract_path = "#{File.dirname(path)}/#{gz.orig_name}"
-        File.open(extract_path, 'w+') do |f|
-          IO.copy_stream(gz, f)
+      post_to_legacy_importer(org_slug, extract_path, is_full_import)
+      FileUtils.rm(extract_path)
+    end
+  when 'ZIP'
+    Zip::File.open(path) do |zf|
+      zf.each do |f|
+        if f.name =~ /.*\.csv$/i
+          extract_path = "#{File.dirname(path)}/#{f.name}"
+          f.extract(extract_path)
+          post_to_legacy_importer(org_slug, extract_path, is_full_import)
+          FileUtils.rm(extract_path)
         end
-        post_to_legacy_importer(org_slug, extract_path, is_full_import)
-        FileUtils.rm(extract_path)
       end
-    when 'ZIP'
-      Zip::File.open(path) do |zf|
-        zf.each do |f|
-          if f.name =~ /.*\.csv$/i
-            extract_path = "#{File.dirname(path)}/#{f.name}"
-            f.extract(extract_path)
-            post_to_legacy_importer(org_slug, extract_path, is_full_import)
-            FileUtils.rm(extract_path)
-          end
-        end
-      end
+    end
   end
 end
 

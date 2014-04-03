@@ -139,30 +139,25 @@ def compress_if_not_already(path, compression)
 end
 
 def process(org_slug, path, compression)
-  begin
-    return if !`lsof #{path}`.empty?
+  return if !`lsof #{path}`.empty?
 
-    is_full_import = !(File.basename(path) =~ /\.full\./i).nil?
+  is_full_import = !(File.basename(path) =~ /\.full\./i).nil?
 
-    to_new_importer = !get_dna(org_slug, "ET.Routing.Upload.Importer2").to_i.zero?
+  to_new_importer = !get_dna(org_slug, "ET.Routing.Upload.Importer2").to_i.zero?
 
-    if to_new_importer
-      send_to_new_importer(org_slug, path, compression, is_full_import)
-    else
-      send_to_legacy_importer(org_slug, path, compression, is_full_import)
-    end
-
-    puts "sent file #{path} for processing"
-
-    compressed_path = compress_if_not_already(path, compression)
-
-    FileUtils.chmod(0700, compressed_path)
-    FileUtils.chown('root', 'root', compressed_path)
-    FileUtils.mv(compressed_path, '/var/evertrue/uploads')
-
-  rescue Exception => e
-    puts e
+  if to_new_importer
+    send_to_new_importer(org_slug, path, compression, is_full_import)
+  else
+    send_to_legacy_importer(org_slug, path, compression, is_full_import)
   end
+
+  puts "sent file #{path} for processing"
+
+  compressed_path = compress_if_not_already(path, compression)
+
+  FileUtils.chmod(0700, compressed_path)
+  FileUtils.chown('root', 'root', compressed_path)
+  FileUtils.mv(compressed_path, '/var/evertrue/uploads')
 end
 
 unames = [<% Array(@unames).each do |uname| %>"<%= uname %>", <% end -%>]
@@ -177,13 +172,17 @@ unames.each do |uname|
   end
 
   Find.find("/home/#{uname}/uploads") do |path|
-    case path
-    when /.*\.csv$/i
-      process(org_slug, path, "NONE")
-    when /.*\.gz$/i
-      process(org_slug, path, "GZIP")
-    when /.*\.zip$/i
-      process(org_slug, path, "ZIP")
+    begin
+      case path
+      when /.*\.csv$/i
+        process(org_slug, path, "NONE")
+      when /.*\.gz$/i
+        process(org_slug, path, "GZIP")
+      when /.*\.zip$/i
+        process(org_slug, path, "ZIP")
+      end
+    rescue => e
+      puts e
     end
   end
 end

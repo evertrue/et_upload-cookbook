@@ -29,9 +29,11 @@ describe 'et_upload::default' do
   end
 
   %w(show_uploads.sh process_uploads.rb).each do |file|
+    source = File.basename(file, File.extname(file))
+
     it "creates file #{file}.sh from template" do
       expect(chef_run).to create_template("/opt/evertrue/upload/#{file}").with(
-        source: "#{file}.erb",
+        source: "#{source}.erb",
         user: 'root',
         group: 'root',
         mode: '0755'

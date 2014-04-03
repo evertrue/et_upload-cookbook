@@ -32,20 +32,9 @@ describe 'et_upload::default' do
     end
   end
 
-  %w(show_uploads).each do |file|
+  %w(show_uploads.sh process_uploads.rb).each do |file|
     it "creates file #{file}.sh from template" do
-      expect(chef_run).to create_template("/opt/evertrue/upload/#{file}.sh").with(
-        source: "#{file}.erb",
-        user: 'root',
-        group: 'root',
-        mode: '0755'
-      )
-    end
-  end
-
-  %w(process_uploads).each do |file|
-    it "creates file #{file}.rb from template" do
-      expect(chef_run).to create_template("/opt/evertrue/upload/#{file}.rb").with(
+      expect(chef_run).to create_template("/opt/evertrue/upload/#{file}").with(
         source: "#{file}.erb",
         user: 'root',
         group: 'root',

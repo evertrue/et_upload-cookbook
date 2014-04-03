@@ -71,7 +71,7 @@ def post_to_new_importer(oid, s3_filename, compression, is_full_import, app_key,
   }
 
   response = http.request(req)
-  raise "Error sending oid: #{oid}, file: #{s3_filename}. Response: #{response.code}, body: #{response.body}" unless response.code.to_i == 200
+  fail "Error sending oid: #{oid}, file: #{s3_filename}. Response: #{response.code}, body: #{response.body}" unless response.code.to_i == 200
 
   body = JSON.parse(response.body)
   body['id']
@@ -85,7 +85,7 @@ def queue_to_new_importer(oid, job_id, app_key, auth)
   req = Net::HTTP::Post.new(uri.request_uri)
 
   response = http.request(req)
-  raise "Error queueing oid: #{oid}, job id: #{job_id}. Response: #{response.code}, body: #{response.body}" unless response.code.to_i == 200
+  fail "Error queueing oid: #{oid}, job id: #{job_id}. Response: #{response.code}, body: #{response.body}" unless response.code.to_i == 200
 end
 
 def send_to_legacy_importer(org_slug, path, compression, is_full_import)
@@ -130,7 +130,7 @@ def post_to_legacy_importer(org_slug, path, is_full_import)
   )
 
   response = http.request(req)
-  raise "Error sending #{path}. Response: #{response.code}, body: #{response.body}" unless response.code.to_i == 200
+  fail "Error sending #{path}. Response: #{response.code}, body: #{response.body}" unless response.code.to_i == 200
 end
 
 def compress_if_not_already(path, compression)

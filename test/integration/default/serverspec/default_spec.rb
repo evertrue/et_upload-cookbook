@@ -60,13 +60,15 @@ describe 'Upload Scripts' do
       end
     end
 
-    describe file("/etc/cron.d/#{script}") do
+    cronjob = File.basename(script, File.extname(script))
+
+    describe file("/etc/cron.d/#{cronjob}") do
       its(:content) { should include shell }
       its(:content) { should include path }
       its(:content) { should include mailto }
 
       cron_hour = '*'
-      cron_hour = '*/4' if script == 'show_uploads'
+      cron_hour = '*/4' if script == 'show_uploads.sh'
 
       its(:content) do
         should include "0 #{cron_hour} * * * root #{scripts_path}/#{script}"
@@ -75,9 +77,13 @@ describe 'Upload Scripts' do
   end
 
   describe file("#{scripts_path}/process_uploads.rb") do
-    its(:content) do
-      should include 'UPLOAD_TEST_KEY'
-      should include 'UPLOAD_TEST_SECRET'
+    its(:content) { should include 'IMPORTER_TEST_KEY' }
+    its(:content) { should include 'IMPORTER_TEST_TOKEN' }
+    its(:content) { should include 'UPLOAD_TEST_KEY' }
+    its(:content) { should include 'UPLOAD_TEST_SECRET' }
+
+    upload_users.each do |uname, u|
+      its(:content) { should include uname }
     end
   end
 

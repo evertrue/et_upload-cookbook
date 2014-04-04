@@ -4,11 +4,7 @@ describe 'et_upload::default' do
   let(:chef_run) { ChefSpec::Runner.new.converge(described_recipe) }
 
   before do
-    stub_command('test -d /opt/evertrue/upload').and_return(0)
-
-    upload_users = {}
-    upload_users['upload'] = users_databag_item
-    ChefSpec::Server.create_data_bag('users', upload_users)
+    setup_environment
   end
 
   it 'includes openssh::default' do

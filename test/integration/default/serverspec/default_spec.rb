@@ -30,8 +30,10 @@ describe 'Upload Scripts' do
     end
   end
 
-  describe package('aws-sdk') do
-    it { should be_installed.by('gem') }
+  %w(aws-sdk rubyzip multipart-post).each do |pkg_gem|
+    describe package(pkg_gem) do
+      it { should be_installed.by('gem') }
+    end
   end
 
   %w(/opt/evertrue/upload /var/evertrue/uploads).each do |path|
@@ -47,8 +49,8 @@ describe 'Upload Scripts' do
   path         = '/sbin:/bin:/usr/sbin:/usr/bin'
   mailto       = 'hai.zhou+upload@evertrue.com'
 
-  %w(show_uploads process_uploads).each do |script|
-    describe file("#{scripts_path}/#{script}.sh") do
+  %w(show_uploads.sh process_uploads.rb).each do |script|
+    describe file("#{scripts_path}/#{script}") do
       it { should be_mode 755 }
       it { should be_owned_by 'root' }
       it { should be_grouped_into 'root' }
@@ -58,17 +60,30 @@ describe 'Upload Scripts' do
       end
     end
 
-    describe file("/etc/cron.d/#{script}") do
+    cronjob = File.basename(script, File.extname(script))
+
+    describe file("/etc/cron.d/#{cronjob}") do
       its(:content) { should include shell }
       its(:content) { should include path }
       its(:content) { should include mailto }
 
       cron_hour = '*'
-      cron_hour = '*/4' if script == 'show_uploads'
+      cron_hour = '*/4' if script == 'show_uploads.sh'
 
       its(:content) do
-        should include "0 #{cron_hour} * * * root #{scripts_path}/#{script}.sh"
+        should include "0 #{cron_hour} * * * root #{scripts_path}/#{script}"
       end
+    end
+  end
+
+  describe file("#{scripts_path}/process_uploads.rb") do
+    its(:content) { should include 'IMPORTER_TEST_KEY' }
+    its(:content) { should include 'IMPORTER_TEST_TOKEN' }
+    its(:content) { should include 'UPLOAD_TEST_KEY' }
+    its(:content) { should include 'UPLOAD_TEST_SECRET' }
+
+    upload_users.each do |uname, u|
+      its(:content) { should include uname }
     end
   end
 

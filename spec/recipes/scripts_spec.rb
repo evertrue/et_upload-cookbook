@@ -4,11 +4,7 @@ describe 'et_upload::default' do
   let(:chef_run) { ChefSpec::Runner.new.converge(described_recipe) }
 
   before do
-    stub_command('test -d /opt/evertrue/upload').and_return(0)
-
-    upload_users = {}
-    upload_users['upload'] = users_databag_item
-    ChefSpec::Server.create_data_bag('users', upload_users)
+    setup_environment
   end
 
   %w(ruby1.9.1 ruby1.9.1-dev).each do |pkg|
@@ -17,8 +13,10 @@ describe 'et_upload::default' do
     end
   end
 
-  it 'installs RubyGem aws-sdk' do
-    expect(chef_run).to install_gem_package('aws-sdk')
+  %w(aws-sdk rubyzip multipart-post).each do |pkg_gem|
+    it "installs RubyGem #{pkg_gem}" do
+      expect(chef_run).to install_gem_package(pkg_gem)
+    end
   end
 
   %w(/opt/evertrue/upload /var/evertrue/uploads).each do |path|
@@ -30,10 +28,12 @@ describe 'et_upload::default' do
     end
   end
 
-  %w(show_uploads process_uploads).each do |file|
+  %w(show_uploads.sh process_uploads.rb).each do |file|
+    source = File.basename(file, File.extname(file))
+
     it "creates file #{file}.sh from template" do
-      expect(chef_run).to create_template("/opt/evertrue/upload/#{file}.sh").with(
-        source: "#{file}.erb",
+      expect(chef_run).to create_template("/opt/evertrue/upload/#{file}").with(
+        source: "#{source}.erb",
         user: 'root',
         group: 'root',
         mode: '0755'

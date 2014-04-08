@@ -173,6 +173,7 @@ end
 unames = %w(<% Array(@unames).each do |uname| %><%= uname %> <% end -%>)
 
 unames.each do |uname|
+  next if uname == 'trial0928'
   org_slug = /(.*?)\d+$/.match(uname)[1]
 
   auto_ingest = get_dna(org_slug, 'ET.Importer.IngestionMode')

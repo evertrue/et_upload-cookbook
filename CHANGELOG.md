@@ -2,6 +2,10 @@ et_upload cookbook CHANGELOG
 ============================
 This file is used to list changes made in each version of the et_upload cookbook.
 
+v2.0.1
+------
+- Fix script to skip processing of trial user uploads
+
 v2.0.0
 ------
 - Refactor upload processing scripts to ship import data to S3

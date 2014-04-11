@@ -2,6 +2,10 @@ et_upload cookbook CHANGELOG
 ============================
 This file is used to list changes made in each version of the et_upload cookbook.
 
+v2.0.2
+------
+- Pin to cron v1.3.8 to avoid "predefined_value" bug.
+
 v2.0.1
 ------
 - Fix script to skip processing of trial user uploads

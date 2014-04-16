@@ -176,14 +176,14 @@ unames.each do |uname|
   next if uname == 'trial0928'
   org_slug = /(.*?)\d+$/.match(uname)[1]
 
-  auto_ingest = get_dna(org_slug, 'ET.Importer.IngestionMode')
-  if auto_ingest.nil? || auto_ingest != 'AutoIngest'
-    puts "skipped auto-ingestion for #{org_slug}"
-    next
-  end
+  begin
+    auto_ingest = get_dna(org_slug, 'ET.Importer.IngestionMode')
+    if auto_ingest.nil? || auto_ingest != 'AutoIngest'
+      puts "skipped auto-ingestion for #{org_slug}"
+      next
+    end
 
-  Find.find("/home/#{uname}/uploads") do |path|
-    begin
+    Find.find("/home/#{uname}/uploads") do |path|
       case path
       when /.*\.csv$/i
         process(org_slug, path, 'NONE')
@@ -192,8 +192,8 @@ unames.each do |uname|
       when /.*\.zip$/i
         process(org_slug, path, 'ZIP')
       end
-    rescue => e
-      puts e
     end
+  rescue => e
+    puts e
   end
 end

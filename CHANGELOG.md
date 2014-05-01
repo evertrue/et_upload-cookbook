@@ -2,6 +2,11 @@ et_upload cookbook CHANGELOG
 ============================
 This file is used to list changes made in each version of the et_upload cookbook.
 
+v2.0.4 (2014-05-01)
+-------------------
+- Use console gate to route imports
+
+
 v2.0.3
 ------
 - Fix issue with mismatched username/OID, properly rescue DNA

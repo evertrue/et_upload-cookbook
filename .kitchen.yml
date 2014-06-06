@@ -6,7 +6,7 @@ provisioner:
   name: chef_zero
   encrypted_data_bag_secret_key_path: test/integration/default/encrypted_data_bag_secret
   client_rb:
-    environment: dev
+    environment: test
 
 platforms:
   - name: ubuntu-12.04

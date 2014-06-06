@@ -1,6 +1,6 @@
 {
-  "name": "dev",
-  "description": "The dev environment",
+  "name": "test",
+  "description": "The test environment",
   "cookbook_versions": {
   },
   "json_class": "Chef::Environment",
@@ -8,6 +8,6 @@
   "default_attributes": {
   },
   "override_attributes": {
-    "chef_env_long_name": "development"
+    "chef_env_long_name": "test"
   }
 }

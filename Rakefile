@@ -28,12 +28,5 @@ task :integration do
   end
 end
 
-require 'stove/rake_task'
-Stove::RakeTask.new do |stove|
-  stove.devodd = false
-  stove.upload = false
-  stove.git = true
-end
-
 # The default rake task should just run it all
 task default: %w(style unit integration)

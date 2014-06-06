@@ -68,7 +68,7 @@ def post_to_new_importer(oid, s3_filename, compression, is_full_import, app_key,
     's3_filename' => s3_filename,
     'compression' => compression,
     'prune' => is_full_import
-  }
+  }.to_json
 
   response = http.request(req)
   fail "Error sending oid: #{oid}, file: #{s3_filename}. Response: #{response.code}, body: #{response.body}" unless response.code.to_i == 200
@@ -194,6 +194,6 @@ unames.each do |uname|
       end
     end
   rescue => e
-    puts e
+    puts "Error processing #{org_slug}: #{e}"
   end
 end

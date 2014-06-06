@@ -60,7 +60,7 @@ def secrets_encrypted_data_bag_item(item)
     fail 'Invalid data bag item specified.'
   end
 
-  Chef::EncryptedDataBagItem.stub(:load)
+  allow(Chef::EncryptedDataBagItem).to receive(:load)
     .with('secrets', item)
     .and_return(contents)
 end

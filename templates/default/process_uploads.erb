@@ -85,7 +85,7 @@ def queue_to_new_importer(oid, job_id, app_key, auth)
   req = Net::HTTP::Post.new(uri.request_uri)
 
   response = http.request(req)
-  fail "Error queueing oid: #{oid}, job id: #{job_id}. Response: #{response.code}, body: #{response.body}" unless response.code.to_i == 200
+  puts "Error queueing oid: #{oid}, job id: #{job_id}. Response: #{response.code}, body: #{response.body}" unless response.code.to_i == 200
 end
 
 def send_to_legacy_importer(org_slug, path, compression, is_full_import)
@@ -184,13 +184,17 @@ unames.each do |uname|
     end
 
     Find.find("/home/#{uname}/uploads") do |path|
-      case path
-      when /.*\.csv$/i
-        process(org_slug, path, 'NONE')
-      when /.*\.gz$/i
-        process(org_slug, path, 'GZIP')
-      when /.*\.zip$/i
-        process(org_slug, path, 'ZIP')
+      begin
+        case path
+        when /.*\.csv$/i
+          process(org_slug, path, 'NONE')
+        when /.*\.gz$/i
+          process(org_slug, path, 'GZIP')
+        when /.*\.zip$/i
+          process(org_slug, path, 'ZIP')
+        end
+      rescue => e
+        puts "Error processing #{path}: #{e}"
       end
     end
   rescue => e

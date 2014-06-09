@@ -10,50 +10,50 @@ describe 'et_upload::default' do
   end
 
   users['upload'].each do |uname, u|
-    if uname != 'id'
-      u['home'] = "/home/#{uname}"
-      u['gid']  = 'uploadonly'
+    next if uname == 'id'
 
-      it "creates user #{uname}" do
-        expect(chef_run).to create_user(uname).with(
-          uid:      u['uid'],
-          gid:      u['gid'],
-          comment:  u['comment'],
-          password: u['password'],
-          home:     u['home']
-        )
-      end
+    u['home'] = "/home/#{uname}"
+    u['gid']  = 'uploadonly'
 
-      it "sets #{uname} home folder mode and ownership" do
-        expect(chef_run).to create_directory(u['home']).with(
-          user:  'root',
-          group: u['gid'],
-          mode:  '0755'
-        )
-      end
+    it "creates user #{uname}" do
+      expect(chef_run).to create_user(uname).with(
+        uid:      u['uid'],
+        gid:      u['gid'],
+        comment:  u['comment'],
+        password: u['password'],
+        home:     u['home']
+      )
+    end
 
-      ["#{u['home']}/.ssh", "#{u['home']}/uploads"].each do |dir|
-        mode = (uname == 'trial-user' && dir == "#{u['home']}/uploads") ? '0300' : '0700'
+    it "sets #{uname} home folder mode and ownership" do
+      expect(chef_run).to create_directory(u['home']).with(
+        user:  'root',
+        group: u['gid'],
+        mode:  '0755'
+      )
+    end
 
-        it "creates #{dir}" do
-          expect(chef_run).to create_directory(dir).with(
-            user:  uname,
-            group: u['gid'],
-            mode:  mode
-          )
-        end
-      end
+    ["#{u['home']}/.ssh", "#{u['home']}/uploads"].each do |dir|
+      mode = (uname == 'trial-user' && dir == "#{u['home']}/uploads") ? '0300' : '0700'
 
-      it "creates #{uname}'s authorized_keys" do
-        auth_keys_path = "#{u['home']}/.ssh/authorized_keys"
-
-        expect(chef_run).to create_template(auth_keys_path).with(
+      it "creates #{dir}" do
+        expect(chef_run).to create_directory(dir).with(
           user:  uname,
           group: u['gid'],
-          mode:  '0600'
+          mode:  mode
         )
-        expect(chef_run).to render_file(auth_keys_path).with_content(u['keys'])
       end
+    end
+
+    it "creates #{uname}'s authorized_keys" do
+      auth_keys_path = "#{u['home']}/.ssh/authorized_keys"
+
+      expect(chef_run).to create_template(auth_keys_path).with(
+        user:  uname,
+        group: u['gid'],
+        mode:  '0600'
+      )
+      expect(chef_run).to render_file(auth_keys_path).with_content(u['keys'])
     end
   end
 end

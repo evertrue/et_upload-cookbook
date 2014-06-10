@@ -1,6 +1,5 @@
 require 'chefspec'
 require 'chefspec/berkshelf'
-require 'chefspec/server'
 require 'json'
 
 RSpec.configure do |config|
@@ -18,7 +17,7 @@ end
 def setup_environment
   stub_command('test -d /opt/evertrue/upload').and_return(0)
 
-  ChefSpec::Server.create_data_bag('users', data_bag('users'))
+  stub_data_bag_item('users', 'upload').and_return(data_bag('users')['upload'])
   secrets_encrypted_data_bag_item('aws_credentials')
   secrets_encrypted_data_bag_item('api_keys')
 end

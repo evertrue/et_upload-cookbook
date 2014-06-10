@@ -2,6 +2,12 @@ et_upload cookbook CHANGELOG
 ============================
 This file is used to list changes made in each version of the et_upload cookbook.
 
+v2.0.6 (2014-06-10)
+-------------------
+
+* Handle individual file failure
+* Fix chefspec tests
+
 v2.0.5 (2014-06-06)
 -------------------
 

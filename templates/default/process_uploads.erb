@@ -91,9 +91,7 @@ end
 def send_to_legacy_importer(org_slug, path, compression, is_full_import)
   case compression
   when 'NONE'
-    File.open(path) do
-      post_to_legacy_importer(org_slug, path, is_full_import)
-    end
+    post_to_legacy_importer(org_slug, path, is_full_import)
   when 'GZIP'
     Zlib::GzipReader.open(path) do |gz|
       extract_path = "#{File.dirname(path)}/#{gz.orig_name}"

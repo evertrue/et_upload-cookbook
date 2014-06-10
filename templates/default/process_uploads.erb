@@ -106,12 +106,12 @@ def send_to_legacy_importer(org_slug, path, compression, is_full_import)
   when 'ZIP'
     Zip::File.open(path) do |zf|
       zf.each do |f|
-        if f.name =~ /.*\.csv$/i
-          extract_path = "#{File.dirname(path)}/#{f.name}"
-          f.extract(extract_path)
-          post_to_legacy_importer(org_slug, extract_path, is_full_import)
-          FileUtils.rm(extract_path)
-        end
+        next unless f.name =~ /.*\.csv$/i
+
+        extract_path = "#{File.dirname(path)}/#{f.name}"
+        f.extract(extract_path)
+        post_to_legacy_importer(org_slug, extract_path, is_full_import)
+        FileUtils.rm(extract_path)
       end
     end
   end

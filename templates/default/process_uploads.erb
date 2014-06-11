@@ -98,8 +98,13 @@ def send_to_legacy_importer(org_slug, path, compression, is_full_import)
       File.open(extract_path, 'w+') do |f|
         IO.copy_stream(gz, f)
       end
-      post_to_legacy_importer(org_slug, extract_path, is_full_import)
-      FileUtils.rm(extract_path)
+      begin
+        post_to_legacy_importer(org_slug, extract_path, is_full_import)
+      rescue => e
+        raise e
+      ensure
+        FileUtils.rm(extract_path)
+      end
     end
   when 'ZIP'
     Zip::File.open(path) do |zf|
@@ -108,8 +113,13 @@ def send_to_legacy_importer(org_slug, path, compression, is_full_import)
 
         extract_path = "#{File.dirname(path)}/#{f.name}"
         f.extract(extract_path)
-        post_to_legacy_importer(org_slug, extract_path, is_full_import)
-        FileUtils.rm(extract_path)
+        begin
+          post_to_legacy_importer(org_slug, extract_path, is_full_import)
+        rescue => e
+          raise e
+        ensure
+          FileUtils.rm(extract_path)
+        end
       end
     end
   end
@@ -128,7 +138,15 @@ def post_to_legacy_importer(org_slug, path, is_full_import)
   )
 
   response = http.request(req)
-  fail "Error sending #{path}. Response: #{response.code}, body: #{response.body}" unless response.code.to_i == 200
+
+  if response.code.to_i == 200
+    return
+  else if response.code.to_i == 504
+    # Job may have been queued
+    puts "Resposne timeout sending #{path}"
+  else
+    fail "Error sending #{path}. Response: #{response.code}, body: #{response.body}"
+  end
 end
 
 def compress_if_not_already(path, compression)

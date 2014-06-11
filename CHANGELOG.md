@@ -2,6 +2,11 @@ et_upload cookbook CHANGELOG
 ============================
 This file is used to list changes made in each version of the et_upload cookbook.
 
+v2.0.8 (2014-06-10)
+-------------------
+
+* Ensure no duplicate submissions due to timeout
+
 v2.0.7 (2014-06-10)
 -------------------
 
@@ -18,11 +23,9 @@ v2.0.5 (2014-06-06)
 
 * Fix job queueing flow (thanks @haizhou)
 
-
 v2.0.4 (2014-05-01)
 -------------------
 - Use console gate to route imports
-
 
 v2.0.3
 ------

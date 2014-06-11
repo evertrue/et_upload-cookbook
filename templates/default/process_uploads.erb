@@ -141,7 +141,7 @@ def post_to_legacy_importer(org_slug, path, is_full_import)
 
   if response.code.to_i == 200
     return
-  else if response.code.to_i == 504
+  elsif response.code.to_i == 504
     # Job may have been queued
     puts "Resposne timeout sending #{path}"
   else

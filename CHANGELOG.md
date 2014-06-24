@@ -2,6 +2,11 @@ et_upload cookbook CHANGELOG
 ============================
 This file is used to list changes made in each version of the et_upload cookbook.
 
+v2.0.10 (2014-06-24)
+-------------------
+
+* Change auto-ingestion flow to only gate new importer queuing
+
 v2.0.9 (2014-06-11)
 -------------------
 

@@ -26,7 +26,7 @@ def get_dna(org_slug, key)
   body['response']['data']
 end
 
-def send_to_new_importer(org_slug, path, compression, is_full_import)
+def send_to_new_importer(org_slug, path, compression, is_full_import, auto_ingest)
   s3 = AWS::S3.new(
     access_key_id: '<%= @aws_access_key_id %>',
     secret_access_key: '<%= @aws_secret_access_key %>'
@@ -42,6 +42,12 @@ def send_to_new_importer(org_slug, path, compression, is_full_import)
   oid = get_oid(org_slug, app_key, auth)
 
   job_id = post_to_new_importer(oid, s3_filename, compression, is_full_import, app_key, auth)
+
+  if auto_ingest == 0
+    puts "skipped auto-ingestion for #{org_slug}"
+    return
+  end
+
   queue_to_new_importer(oid, job_id, app_key, auth)
 end
 
@@ -164,7 +170,7 @@ def compress_if_not_already(path, compression)
   "#{path}.gz"
 end
 
-def process(org_slug, path, compression)
+def process(org_slug, path, compression, auto_ingest)
   return unless `lsof #{path}`.empty?
 
   is_full_import = !(File.basename(path) =~ /\.full\./i).nil?
@@ -172,7 +178,7 @@ def process(org_slug, path, compression)
   to_new_importer = !get_dna(org_slug, 'ET.Routing.Console.Contacts').to_i.zero?
 
   if to_new_importer
-    send_to_new_importer(org_slug, path, compression, is_full_import)
+    send_to_new_importer(org_slug, path, compression, is_full_import, auto_ingest)
   else
     send_to_legacy_importer(org_slug, path, compression, is_full_import)
   end
@@ -195,19 +201,20 @@ unames.each do |uname|
   begin
     auto_ingest = get_dna(org_slug, 'ET.Importer.IngestionMode')
     if auto_ingest.nil? || auto_ingest != 'AutoIngest'
-      puts "skipped auto-ingestion for #{org_slug}"
-      next
+      auto_ingest = 0
+    else
+      auto_ingest = 1
     end
 
     Find.find("/home/#{uname}/uploads") do |path|
       begin
         case path
         when /.*\.csv$/i
-          process(org_slug, path, 'NONE')
+          process(org_slug, path, 'NONE', auto_ingest)
         when /.*\.gz$/i
-          process(org_slug, path, 'GZIP')
+          process(org_slug, path, 'GZIP', auto_ingest)
         when /.*\.zip$/i
-          process(org_slug, path, 'ZIP')
+          process(org_slug, path, 'ZIP', auto_ingest)
         end
       rescue => e
         puts "Error processing #{path}: #{e}"

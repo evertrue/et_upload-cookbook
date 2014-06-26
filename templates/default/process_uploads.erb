@@ -5,6 +5,7 @@
 
 require 'aws-sdk'
 require 'find'
+require 'shellwords'
 require 'fileutils'
 require 'net/http'
 require 'net/http/post/multipart'
@@ -208,6 +209,7 @@ unames.each do |uname|
 
     Find.find("/home/#{uname}/uploads") do |path|
       begin
+        path = Shellwords.shellescape path
         case path
         when /.*\.csv$/i
           process(org_slug, path, 'NONE', auto_ingest)

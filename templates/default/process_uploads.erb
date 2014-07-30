@@ -172,7 +172,7 @@ def compress_if_not_already(path, compression)
 end
 
 def process(org_slug, path, compression, auto_ingest)
-  return unless `lsof #{path}`.empty?
+  return unless `lsof #{Shellwords.shellescape path}`.empty?
 
   is_full_import = !(File.basename(path) =~ /\.full\./i).nil?
 
@@ -209,7 +209,6 @@ unames.each do |uname|
 
     Find.find("/home/#{uname}/uploads") do |path|
       begin
-        path = Shellwords.shellescape path
         case path
         when /.*\.csv$/i
           process(org_slug, path, 'NONE', auto_ingest)

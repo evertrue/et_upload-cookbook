@@ -2,6 +2,11 @@ et_upload cookbook CHANGELOG
 ============================
 This file is used to list changes made in each version of the et_upload cookbook.
 
+v2.0.12 (2014-07-30)
+-------------------
+
+* Escape spaces only for shell exec
+
 v2.0.11 (2014-06-26)
 -------------------
 

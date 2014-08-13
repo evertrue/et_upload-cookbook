@@ -2,6 +2,11 @@ et_upload cookbook CHANGELOG
 ============================
 This file is used to list changes made in each version of the et_upload cookbook.
 
+v2.0.13 (2014-08-13)
+-------------------
+
+* Add notification when queueing a job
+
 v2.0.12 (2014-07-30)
 -------------------
 

@@ -74,7 +74,8 @@ def post_to_new_importer(oid, s3_filename, compression, is_full_import, app_key,
   req.body = {
     's3_filename' => s3_filename,
     'compression' => compression,
-    'prune' => is_full_import
+    'prune' => is_full_import,
+    'notify' => 1
   }.to_json
 
   response = http.request(req)

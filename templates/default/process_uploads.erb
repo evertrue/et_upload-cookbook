@@ -96,67 +96,6 @@ def queue_to_new_importer(oid, job_id, app_key, auth)
   puts "Error queueing oid: #{oid}, job id: #{job_id}. Response: #{response.code}, body: #{response.body}" unless response.code.to_i == 200
 end
 
-def send_to_legacy_importer(org_slug, path, compression, is_full_import)
-  case compression
-  when 'NONE'
-    post_to_legacy_importer(org_slug, path, is_full_import)
-  when 'GZIP'
-    Zlib::GzipReader.open(path) do |gz|
-      extract_path = "#{File.dirname(path)}/#{gz.orig_name}"
-      File.open(extract_path, 'w+') do |f|
-        IO.copy_stream(gz, f)
-      end
-      begin
-        post_to_legacy_importer(org_slug, extract_path, is_full_import)
-      rescue => e
-        raise e
-      ensure
-        FileUtils.rm(extract_path)
-      end
-    end
-  when 'ZIP'
-    Zip::File.open(path) do |zf|
-      zf.each do |f|
-        next unless f.name =~ /.*\.csv$/i
-
-        extract_path = "#{File.dirname(path)}/#{f.name}"
-        f.extract(extract_path)
-        begin
-          post_to_legacy_importer(org_slug, extract_path, is_full_import)
-        rescue => e
-          raise e
-        ensure
-          FileUtils.rm(extract_path)
-        end
-      end
-    end
-  end
-end
-
-def post_to_legacy_importer(org_slug, path, is_full_import)
-  uri = URI.parse(URI.encode("https://api-hb.evertrue.com/1.0/#{org_slug}/importjob"))
-  http = Net::HTTP.new(uri.host, uri.port)
-  http.use_ssl = true
-
-  req = Net::HTTP::Post::Multipart.new(
-    uri.request_uri,
-    'type' => 'file',
-    'prune' => (is_full_import ? 1 : 0),
-    'file' => UploadIO.new(path, 'text/csv')
-  )
-
-  response = http.request(req)
-
-  if response.code.to_i == 200
-    return
-  elsif response.code.to_i == 504
-    # Job may have been queued
-    puts "Resposne timeout sending #{path}"
-  else
-    fail "Error sending #{path}. Response: #{response.code}, body: #{response.body}"
-  end
-end
-
 def compress_if_not_already(path, compression)
   return path if compression != 'NONE'
 
@@ -177,13 +116,7 @@ def process(org_slug, path, compression, auto_ingest)
 
   is_full_import = !(File.basename(path) =~ /\.full\./i).nil?
 
-  to_new_importer = !get_dna(org_slug, 'ET.Routing.Console.Contacts').to_i.zero?
-
-  if to_new_importer
-    send_to_new_importer(org_slug, path, compression, is_full_import, auto_ingest)
-  else
-    send_to_legacy_importer(org_slug, path, compression, is_full_import)
-  end
+  send_to_new_importer(org_slug, path, compression, is_full_import, auto_ingest)
 
   puts "sent file #{path} for processing"
 

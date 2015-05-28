@@ -40,7 +40,7 @@ end
 
 unames = data_bag_item('users', 'upload').keys.select { |uname| uname != 'id' }
 
-s3_creds = Chef::EncryptedDataBagItem.load(
+s3_creds = data_bag_item(
   'secrets',
   'aws_credentials'
 )["Upload-#{node.chef_environment}"]
@@ -48,7 +48,7 @@ s3_creds = Chef::EncryptedDataBagItem.load(
 aws_access_key_id     = s3_creds['access_key_id']
 aws_secret_access_key = s3_creds['secret_access_key']
 
-upload_creds = Chef::EncryptedDataBagItem.load(
+upload_creds = data_bag_item(
   'secrets',
   'api_keys'
 )[node.chef_environment]['importer']['upload']

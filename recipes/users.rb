@@ -27,39 +27,52 @@ upload_users.each do |uname, u|
   u['home'] = "/home/#{uname}"
   u['gid'] = 'uploadonly'
 
-  user uname do
-    uid u['uid']
-    gid u['gid']
-    shell '/bin/bash'
-    comment u['comment']
-    password u['password'] if u['password']
-    supports manage_home: true
-    home u['home']
-  end
+  if u['action'] == 'remove'
+    user uname do
+      uid u['uid']
+      gid u['gid']
+      action :remove
+    end
 
-  directory u['home'] do
-    owner 'root'
-    group u['gid']
-    mode '0755'
-    action :create
-  end
+    directory u['home'] do
+      action :delete
+      recursive true
+    end
+  else
+    user uname do
+      uid u['uid']
+      gid u['gid']
+      shell '/bin/bash'
+      comment u['comment']
+      password u['password'] if u['password']
+      supports manage_home: true
+      home u['home']
+    end
 
-  ["#{u['home']}/.ssh", "#{u['home']}/uploads"].each do |dir|
-    mode = uname.include?('trial') && dir.include?('uploads') ? '0300' : '0700'
+    directory u['home'] do
+      owner 'root'
+      group u['gid']
+      mode '0755'
+      action :create
+    end
 
-    directory dir do
+    ["#{u['home']}/.ssh", "#{u['home']}/uploads"].each do |dir|
+      mode = uname.include?('trial') && dir.include?('uploads') ? '0300' : '0700'
+
+      directory dir do
+        owner uname
+        group u['gid']
+        mode mode
+      end
+    end
+
+    template "#{u['home']}/.ssh/authorized_keys" do
+      source 'authorized_keys.erb'
       owner uname
       group u['gid']
-      mode mode
+      mode '0600'
+      variables ssh_keys: u['ssh_keys']
+      only_if { u['ssh_keys'] }
     end
-  end
-
-  template "#{u['home']}/.ssh/authorized_keys" do
-    source 'authorized_keys.erb'
-    owner uname
-    group u['gid']
-    mode '0600'
-    variables ssh_keys: u['ssh_keys']
-    only_if { u['ssh_keys'] }
   end
 end

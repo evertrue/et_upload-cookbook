@@ -1,4 +1,5 @@
 require 'spec_helper'
+require 'json'
 
 upload_users_file = File.open('/tmp/kitchen/data_bags/users/upload.json').read
 upload_users = JSON.parse(upload_users_file).select { |uname| uname != 'id' }

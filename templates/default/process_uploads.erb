@@ -127,7 +127,7 @@ def process(org_slug, path, compression, auto_ingest)
   FileUtils.mv(compressed_path, '/var/evertrue/uploads')
 end
 
-unames = %w(<% Array(@unames).each do |uname| %><%= uname %> <% end -%>)
+unames = %w(<%= @unames.join(' ') %>)
 
 unames.each do |uname|
   next if uname == 'trial0928'

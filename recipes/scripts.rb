@@ -81,22 +81,12 @@ file "/opt/evertrue/config.yml" do
   mode 0600
 end
 
-%w(show_uploads).each do |file|
-  template "/opt/evertrue/upload/#{file}.sh" do
-    source "#{file}.erb"
-    owner 'root'
-    group 'root'
-    mode '0755'
-    variables unames: unames
-  end
-end
-
-%w(process_uploads.rb generate_random_user_and_pass.sh).each do |file|
+%w(process_uploads.rb
+   generate_random_user_and_pass.sh
+   show_uploads).each do |file|
   cookbook_file file do
     path "/opt/evertrue/upload/#{file}"
-    owner 'root'
-    group 'root'
-    mode '0755'
+    mode 0755
   end
 end
 
@@ -107,7 +97,7 @@ mailto = 'hai.zhou+upload@evertrue.com'
 cron_d 'show_uploads' do
   minute  0
   hour    '*/4'
-  command '/opt/evertrue/upload/show_uploads.sh'
+  command '/opt/evertrue/upload/show_uploads'
   user    'root'
   shell   shell
   path    path

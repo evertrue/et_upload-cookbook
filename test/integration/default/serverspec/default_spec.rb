@@ -107,35 +107,6 @@ describe 'Upload Scripts' do
     end
   end
 
-  describe file("#{scripts_path}/process_uploads.rb") do
-    describe '#content' do
-      subject { super().content }
-      it { is_expected.to include 'IMPORTER_TEST_KEY' }
-    end
-
-    describe '#content' do
-      subject { super().content }
-      it { is_expected.to include 'IMPORTER_TEST_TOKEN' }
-    end
-
-    describe '#content' do
-      subject { super().content }
-      it { is_expected.to include 'UPLOAD_TEST_KEY' }
-    end
-
-    describe '#content' do
-      subject { super().content }
-      it { is_expected.to include 'UPLOAD_TEST_SECRET' }
-    end
-
-    upload_users.each do |uname, _u|
-      describe '#content' do
-        subject { super().content }
-        it { is_expected.to include uname }
-      end
-    end
-  end
-
   describe file('/etc/cron.d/clean_uploads') do
     describe '#content' do
       subject { super().content }

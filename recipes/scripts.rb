@@ -43,7 +43,11 @@ end
   end
 end
 
-unames = data_bag_item('users', 'upload').keys.select { |uname| uname != 'id' }
+unames_db = data_bag_item('users', 'upload')
+unames = unames_db.select { |uname, conf| uname != 'id' && !conf['mock'] }.keys
+
+Chef::Log.debug("unames_db: #{unames_db.inspect}")
+Chef::Log.debug("unames: #{unames}")
 
 s3_creds = data_bag_item(
   'secrets',

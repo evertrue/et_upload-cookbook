@@ -2,8 +2,8 @@
 
 require 'yaml'
 
-conf = YAML.load_file('/etc/evertrue/config.yml')
+conf = YAML.load_file('/opt/evertrue/config.yml')
 
-files = conf['unames'].map { |uname| Dir.glob("/home/#{uname}/uploads/*.{csv,gz,zip}") }.flatten
+files = conf[:unames].map { |uname| Dir.glob("/home/#{uname}/uploads/*.{csv,gz,zip}") }.flatten
 
-puts files.join("\n")
+puts files.join("\n") unless files.empty?

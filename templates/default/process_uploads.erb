@@ -61,6 +61,7 @@ def get_oid(org_slug, app_key, auth)
 
   req = Net::HTTP::Get.new(uri.request_uri)
   response = http.request(req)
+  fail "Error sending org_slug: #{org_slug}, Response: #{response.code}, body: #{response.body}" unless response.code.to_i == 200
 
   body = JSON.parse(response.body)
   body['id']

@@ -60,7 +60,7 @@ upload_users.each do |uname, u|
       directory dir do
         owner uname
         group u['gid']
-        mode 700
+        mode 0700
       end
     end
 

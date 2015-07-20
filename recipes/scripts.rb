@@ -81,8 +81,17 @@ file "/opt/evertrue/config.yml" do
   mode 0600
 end
 
+# Delete old files
 %w(process_uploads.rb
    generate_random_user_and_pass.sh
+   show_uploads.sh).each do |file|
+  file "/opt/evertrue/upload/#{file}" do
+    action :delete
+  end
+end
+
+%w(process_uploads
+   generate_random_user_and_pass
    show_uploads).each do |file|
   cookbook_file file do
     path "/opt/evertrue/upload/#{file}"
@@ -106,7 +115,7 @@ end
 
 cron_d 'process_uploads' do
   minute  0
-  command '/opt/evertrue/upload/process_uploads.rb'
+  command '/opt/evertrue/upload/process_uploads'
   user    'root'
   shell   shell
   path    path

@@ -21,16 +21,42 @@ def conf
   @conf ||= YAML.load_file('/opt/evertrue/config.yml')
 end
 
-def get_dna(org_slug, key)
-  uri = URI.parse(URI.encode(conf[:api_url] + "/1.0/#{org_slug}/dna/#{key}"))
+def get_from_api(uri)
+  uri = URI.parse(URI.encode(uri))
+
   http = Net::HTTP.new(uri.host, uri.port)
   http.use_ssl = true
 
   req = Net::HTTP::Get.new(uri.request_uri)
   response = http.request(req)
+  fail "API error, Response: #{response.code}, body: #{response.body}" unless response.code.to_i == 200
 
-  body = JSON.parse(response.body)
-  body['response']['data']
+  JSON.parse(response.body)
+end
+
+def post_to_api(uri, data)
+  uri = URI.parse(URI.encode(uri))
+  http = Net::HTTP.new(uri.host, uri.port)
+  http.use_ssl = true
+
+  req = Net::HTTP::Post.new(uri.request_uri)
+  unless data.empty?
+    req['Content-Type'] = 'application/json'
+    req.body = data.to_json
+  end
+
+  response = http.request(req)
+  fail "Error posting to API, data: #{data.inspect}. Response: #{response.code}, body: #{response.body}" unless response.code.to_i == 200
+
+  JSON.parse(response.body)
+end
+
+def get_dna(org_slug, key)
+  get_from_api(conf[:api_url] + "/1.0/#{org_slug}/dna/#{key}")['response']['data']
+rescue Exception => e
+  puts "Error sending org_slug: #{org_slug}"
+  puts e.message
+  puts e.backtrace
 end
 
 def send_to_new_importer(org_slug, path, compression, is_full_import, auto_ingest)
@@ -59,48 +85,34 @@ def send_to_new_importer(org_slug, path, compression, is_full_import, auto_inges
 end
 
 def get_oid(org_slug, app_key, auth)
-  uri = URI.parse(URI.encode(conf[:api_url] + "/auth/organizations/slug/#{org_slug}?auth=#{auth}&auth_provider=evertrueapptoken&app_key=#{app_key}"))
-  http = Net::HTTP.new(uri.host, uri.port)
-  http.use_ssl = true
-
-  req = Net::HTTP::Get.new(uri.request_uri)
-  response = http.request(req)
-  fail "Error sending org_slug: #{org_slug}, Response: #{response.code}, body: #{response.body}" unless response.code.to_i == 200
-
-  body = JSON.parse(response.body)
-  body['id']
+  get_from_api(conf[:api_url] + "/auth/organizations/slug/#{org_slug}?auth=#{auth}&auth_provider=evertrueapptoken&app_key=#{app_key}")['id']
+rescue Exception => e
+  puts "Error sending org_slug: #{org_slug}"
+  puts e.message
+  puts e.backtrace
 end
 
 def post_to_new_importer(oid, s3_filename, compression, is_full_import, app_key, auth)
-  uri = URI.parse(URI.encode(conf[:api_url] + "/importer/v1/jobs?oid=#{oid}&auth=#{auth}&auth_provider=evertrueapptoken&app_key=#{app_key}"))
-  http = Net::HTTP.new(uri.host, uri.port)
-  http.use_ssl = true
-
-  req = Net::HTTP::Post.new(uri.request_uri)
-  req['Content-Type'] = 'application/json'
-  req.body = {
+  data = {
     's3_filename' => s3_filename,
     'compression' => compression,
     'prune' => is_full_import,
     'notify' => 1
-  }.to_json
+  }
 
-  response = http.request(req)
-  fail "Error sending oid: #{oid}, file: #{s3_filename}. Response: #{response.code}, body: #{response.body}" unless response.code.to_i == 200
-
-  body = JSON.parse(response.body)
-  body['id']
+  post_to_api(conf[:api_url] + "/importer/v1/jobs?oid=#{oid}&auth=#{auth}&auth_provider=evertrueapptoken&app_key=#{app_key}", data)['id']
+rescue Exception => e
+  puts "Error sending oid: #{oid}, s3_filename: #{s3_filename}"
+  puts e.message
+  puts e.backtrace
 end
 
 def queue_to_new_importer(oid, job_id, app_key, auth)
-  uri = URI.parse(URI.encode(conf[:api_url] + "/importer/v1/jobs/queue/#{job_id}?oid=#{oid}&auth=#{auth}&auth_provider=evertrueapptoken&app_key=#{app_key}"))
-  http = Net::HTTP.new(uri.host, uri.port)
-  http.use_ssl = true
-
-  req = Net::HTTP::Post.new(uri.request_uri)
-
-  response = http.request(req)
-  puts "Error queueing oid: #{oid}, job id: #{job_id}. Response: #{response.code}, body: #{response.body}" unless response.code.to_i == 200
+  post_to_api(conf[:api_url] + "/importer/v1/jobs/queue/#{job_id}?oid=#{oid}&auth=#{auth}&auth_provider=evertrueapptoken&app_key=#{app_key}", {})
+rescue Exception => e
+  puts "Error queueing oid: #{oid}, job_id: #{job_id}"
+  puts e.message
+  puts e.backtrace
 end
 
 def compress_if_not_already(path, compression)
@@ -124,7 +136,6 @@ def process(org_slug, path, compression, auto_ingest)
   is_full_import = !(File.basename(path) =~ /\.full\./i).nil?
 
   send_to_new_importer(org_slug, path, compression, is_full_import, auto_ingest)
-
   puts "sent file #{path} for processing"
 
   compressed_path = compress_if_not_already(path, compression)

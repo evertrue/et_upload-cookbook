@@ -142,14 +142,14 @@ describe 'Upload users' do
   end
 
   upload_users.each do |uname, u|
-    u['home'] = "/home/#{uname}"
-    u['gid'] = 'uploadonly'
+    home = "/home/#{uname}"
+    gid = 'uploadonly'
 
     describe user(uname) do
       it { is_expected.to exist }
       it { is_expected.to belong_to_group 'uploadonly' }
       it { is_expected.to have_uid u['uid'] }
-      it { is_expected.to have_home_directory u['home'] }
+      it { is_expected.to have_home_directory home }
       it { is_expected.to have_login_shell '/bin/bash' }
 
       u['ssh_keys'].each do |ssh_key|
@@ -157,27 +157,27 @@ describe 'Upload users' do
       end
     end
 
-    describe file(u['home']) do
+    describe file(home) do
       it { is_expected.to be_directory }
       it { is_expected.to be_mode 755 }
       it { is_expected.to be_owned_by 'root' }
-      it { is_expected.to be_grouped_into u['gid'] }
+      it { is_expected.to be_grouped_into gid }
     end
 
     if u['ssh_keys']
-      describe file("#{u['home']}/.ssh/authorized_keys") do
+      describe file("#{home}/.ssh/authorized_keys") do
         it { is_expected.to be_mode 600 }
         it { is_expected.to be_owned_by uname }
-        it { is_expected.to be_grouped_into u['gid'] }
+        it { is_expected.to be_grouped_into gid }
       end
     end
 
-    ["#{u['home']}/.ssh", "#{u['home']}/uploads"].each do |dir|
+    ["#{home}/.ssh", "#{home}/uploads"].each do |dir|
       describe file(dir) do
         it { is_expected.to be_directory }
         it { is_expected.to be_mode 700 }
         it { is_expected.to be_owned_by uname }
-        it { is_expected.to be_grouped_into u['gid'] }
+        it { is_expected.to be_grouped_into gid }
       end
     end
   end

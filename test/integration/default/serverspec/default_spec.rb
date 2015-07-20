@@ -204,3 +204,9 @@ describe 'Upload users' do
     end
   end
 end
+
+describe 'Process uploads' do
+  describe command('sftp -P 43827 -b /tmp/kitchen/cache/sftp_batch_command -i /tmp/kitchen/cache/id_rsa amherst4451@localhost') do
+    its(:exit_status) { should eq 0 }
+  end
+end

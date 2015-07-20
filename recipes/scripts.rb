@@ -74,6 +74,7 @@ end
     group 'root'
     mode '0755'
     variables(
+      api_url:               node['et_upload']['api_url'],
       unames:                unames,
       aws_access_key_id:     aws_access_key_id,
       aws_secret_access_key: aws_secret_access_key,

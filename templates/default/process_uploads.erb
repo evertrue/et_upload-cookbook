@@ -15,8 +15,10 @@ require 'zlib'
 require 'zip'
 require 'date'
 
+API_URL = '<%= @api_url %>'
+
 def get_dna(org_slug, key)
-  uri = URI.parse(URI.encode("https://api-hb.evertrue.com/1.0/#{org_slug}/dna/#{key}"))
+  uri = URI.parse(URI.encode(API_URL + "/1.0/#{org_slug}/dna/#{key}"))
   http = Net::HTTP.new(uri.host, uri.port)
   http.use_ssl = true
 
@@ -53,7 +55,7 @@ def send_to_new_importer(org_slug, path, compression, is_full_import, auto_inges
 end
 
 def get_oid(org_slug, app_key, auth)
-  uri = URI.parse(URI.encode("https://api-hb.evertrue.com/auth/organizations/slug/#{org_slug}?auth=#{auth}&auth_provider=evertrueapptoken&app_key=#{app_key}"))
+  uri = URI.parse(URI.encode(API_URL + "/auth/organizations/slug/#{org_slug}?auth=#{auth}&auth_provider=evertrueapptoken&app_key=#{app_key}"))
   http = Net::HTTP.new(uri.host, uri.port)
   http.use_ssl = true
 
@@ -65,7 +67,7 @@ def get_oid(org_slug, app_key, auth)
 end
 
 def post_to_new_importer(oid, s3_filename, compression, is_full_import, app_key, auth)
-  uri = URI.parse(URI.encode("https://api-hb.evertrue.com/importer/v1/jobs?oid=#{oid}&auth=#{auth}&auth_provider=evertrueapptoken&app_key=#{app_key}"))
+  uri = URI.parse(URI.encode(API_URL + "/importer/v1/jobs?oid=#{oid}&auth=#{auth}&auth_provider=evertrueapptoken&app_key=#{app_key}"))
   http = Net::HTTP.new(uri.host, uri.port)
   http.use_ssl = true
 
@@ -86,7 +88,7 @@ def post_to_new_importer(oid, s3_filename, compression, is_full_import, app_key,
 end
 
 def queue_to_new_importer(oid, job_id, app_key, auth)
-  uri = URI.parse(URI.encode("https://api-hb.evertrue.com/importer/v1/jobs/queue/#{job_id}?oid=#{oid}&auth=#{auth}&auth_provider=evertrueapptoken&app_key=#{app_key}"))
+  uri = URI.parse(URI.encode(API_URL + "/importer/v1/jobs/queue/#{job_id}?oid=#{oid}&auth=#{auth}&auth_provider=evertrueapptoken&app_key=#{app_key}"))
   http = Net::HTTP.new(uri.host, uri.port)
   http.use_ssl = true
 

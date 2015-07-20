@@ -100,7 +100,7 @@ end
 
 shell  = '/bin/bash'
 path   = '/sbin:/bin:/usr/sbin:/usr/bin'
-mailto = 'hai.zhou+upload@evertrue.com'
+mailto = 'sftp-uploader@evertrue.com'
 
 cron_d 'show_uploads' do
   minute  0

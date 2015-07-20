@@ -134,33 +134,42 @@ def process(org_slug, path, compression, auto_ingest)
   FileUtils.mv(compressed_path, '/var/evertrue/uploads')
 end
 
-conf['unames'].each do |uname|
-  next if uname == 'trial0928'
-  org_slug = /(.*?)\d+$/.match(uname)[1]
+def main
+  processed_users = conf[:unames].each_with_object([]) do |uname, m|
+    next if uname == 'trial0928'
+    org_slug = /(.*?)\d+$/.match(uname)[1]
 
-  begin
-    auto_ingest = get_dna(org_slug, 'ET.Importer.IngestionMode')
-    if auto_ingest.nil? || auto_ingest != 'AutoIngest'
-      auto_ingest = 0
-    else
-      auto_ingest = 1
-    end
-
-    Find.find("/home/#{uname}/uploads") do |path|
-      begin
-        case path
-        when /.*\.csv$/i
-          process(org_slug, path, 'NONE', auto_ingest)
-        when /.*\.gz$/i
-          process(org_slug, path, 'GZIP', auto_ingest)
-        when /.*\.zip$/i
-          process(org_slug, path, 'ZIP', auto_ingest)
-        end
-      rescue => e
-        puts "Error processing #{path}: #{e}"
+    begin
+      auto_ingest = get_dna(org_slug, 'ET.Importer.IngestionMode')
+      if auto_ingest.nil? || auto_ingest != 'AutoIngest'
+        auto_ingest = 0
+      else
+        auto_ingest = 1
       end
+
+      Find.find("/home/#{uname}/uploads") do |path|
+        begin
+          case path
+          when /.*\.csv$/i
+            process(org_slug, path, 'NONE', auto_ingest)
+            m << uname
+          when /.*\.gz$/i
+            process(org_slug, path, 'GZIP', auto_ingest)
+            m << uname
+          when /.*\.zip$/i
+            process(org_slug, path, 'ZIP', auto_ingest)
+            m << uname
+          end
+        rescue => e
+          puts "Error processing #{path}: #{e}"
+        end
+      end
+    rescue => e
+      puts "Error processing #{org_slug}: #{e}"
     end
-  rescue => e
-    puts "Error processing #{org_slug}: #{e}"
   end
+
+  puts "Uploaded data from: #{processed_users.join(', ')}"
 end
+
+main

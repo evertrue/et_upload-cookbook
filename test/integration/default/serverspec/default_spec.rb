@@ -2,7 +2,8 @@ require 'spec_helper'
 require 'json'
 
 upload_users_file = File.open('/tmp/kitchen/data_bags/users/upload.json').read
-upload_users = JSON.parse(upload_users_file).select { |uname| uname != 'id' }
+upload_users = JSON.parse(upload_users_file)
+  .select { |uname, conf| uname != 'id' && !conf['mock'] }
 
 describe 'SSH Service' do
   %w(22 43827).each do |port|
@@ -65,18 +66,24 @@ describe 'Upload Scripts' do
   path         = '/sbin:/bin:/usr/sbin:/usr/bin'
   mailto       = 'hai.zhou+upload@evertrue.com'
 
+  describe file('/opt/evertrue/config.yml') do
+    it { is_expected.to be_mode 600 }
+    it { is_expected.to be_owned_by 'root' }
+    it { is_expected.to be_grouped_into 'root' }
+
+    upload_users.each do |uname, _u|
+      describe '#content' do
+        subject { super().content }
+        it { is_expected.to include uname }
+      end
+    end
+  end
+
   %w(show_uploads.sh process_uploads.rb).each do |script|
     describe file("#{scripts_path}/#{script}") do
       it { is_expected.to be_mode 755 }
       it { is_expected.to be_owned_by 'root' }
       it { is_expected.to be_grouped_into 'root' }
-
-      upload_users.keys.each do |uname, _u|
-        describe '#content' do
-          subject { super().content }
-          it { is_expected.to include uname }
-        end
-      end
     end
 
     cronjob = File.basename(script, File.extname(script))

@@ -26,7 +26,12 @@ end
   package pkg
 end
 
-%w(aws-sdk rubyzip multipart-post).each do |gem_pkg|
+gem_package 'aws-sdk' do
+  version '~> 1.0'
+  action :upgrade
+end
+
+%w(rubyzip multipart-post).each do |gem_pkg|
   gem_package gem_pkg
 end
 

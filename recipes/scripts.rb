@@ -22,6 +22,8 @@ when 'debian'
   include_recipe 'apt'
 end
 
+include_recipe 'build-essential'
+
 %w(ruby1.9.1 ruby1.9.1-dev).each do |pkg|
   package pkg
 end

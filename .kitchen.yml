@@ -20,3 +20,5 @@ suites:
         api_url: "https://stage-api.evertrue.com"
         aws_access_key_id: <%= ENV['AWS_ACCESS_KEY_ID'] %>
         aws_secret_access_key: <%= ENV['AWS_SECRET_ACCESS_KEY'] %>
+        upload_app_key: <%= ENV['UPLOAD_ET_APP_KEY'] %>
+        upload_auth_token: <%= ENV['UPLOAD_ET_AUTH_TOKEN'] %>

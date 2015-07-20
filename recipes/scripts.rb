@@ -89,8 +89,8 @@ end
       unames:                unames,
       aws_access_key_id:     node['et_upload']['aws_access_key_id'] || aws_access_key_id,
       aws_secret_access_key: node['et_upload']['aws_secret_access_key'] || aws_secret_access_key,
-      upload_app_key:        upload_app_key,
-      upload_auth_token:     upload_auth_token
+      upload_app_key:        node['et_upload']['upload_app_key'] || upload_app_key,
+      upload_auth_token:     node['et_upload']['upload_auth_token'] || upload_auth_token
     )
     only_if 'test -d /opt/evertrue/upload'
   end

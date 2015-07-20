@@ -79,7 +79,7 @@ describe 'Upload Scripts' do
     end
   end
 
-  %w(show_uploads.sh process_uploads.rb).each do |script|
+  %w(show_uploads process_uploads).each do |script|
     describe file("#{scripts_path}/#{script}") do
       it { is_expected.to be_mode 755 }
       it { is_expected.to be_owned_by 'root' }
@@ -105,7 +105,7 @@ describe 'Upload Scripts' do
       end
 
       cron_hour = '*'
-      cron_hour = '*/4' if script == 'show_uploads.sh'
+      cron_hour = '*/4' if script == 'show_uploads'
 
       describe '#content' do
         subject { super().content }
@@ -132,6 +132,12 @@ describe 'Upload Scripts' do
           '15 0 * * * root find /var/evertrue/uploads/* -mtime +7 -exec /bin/rm {} \;'
         )
       end
+    end
+  end
+
+  %w(process_uploads.rb generate_random_user_and_pass.sh show_uploads.sh).each do |script|
+    describe file("/opt/evertrue/upload/#{script}") do
+      it { is_expected.to_not be_file }
     end
   end
 end
@@ -188,7 +194,7 @@ describe 'Process uploads' do
     its(:exit_status) { should eq 0 }
   end
 
-  describe command('/opt/evertrue/upload/process_uploads.rb') do
+  describe command('/opt/evertrue/upload/process_uploads') do
     its(:exit_status) { should eq 0 }
     its(:stdout) { should match 'sent file /home/amherst4451/uploads/test_gifts_files.csv for processing' }
     upload_users.each { |uname, _u| its(:stdout) { should match "Uploaded data from: #{uname}" } }

@@ -22,7 +22,7 @@ def conf
 end
 
 def get_dna(org_slug, key)
-  uri = URI.parse(URI.encode(conf['api_url'] + "/1.0/#{org_slug}/dna/#{key}"))
+  uri = URI.parse(URI.encode(conf[:api_url] + "/1.0/#{org_slug}/dna/#{key}"))
   http = Net::HTTP.new(uri.host, uri.port)
   http.use_ssl = true
 
@@ -35,16 +35,16 @@ end
 
 def send_to_new_importer(org_slug, path, compression, is_full_import, auto_ingest)
   s3 = AWS::S3.new(
-    access_key_id: conf['aws_access_key_id'],
-    secret_access_key: conf['aws_secret_access_key']
+    access_key_id: conf[:aws_access_key_id],
+    secret_access_key: conf[:aws_secret_access_key]
   )
   bucket = s3.buckets['onboarding.evertrue.com']
   now = DateTime.now.strftime('%Q')
   s3_filename = "#{now}-#{File.basename(path)}"
   bucket.objects["#{org_slug}/data/#{s3_filename}"].write(Pathname.new(path))
 
-  app_key = conf['upload_app_key']
-  auth = conf['upload_auth_token']
+  app_key = conf[:upload_app_key]
+  auth = conf[:upload_auth_token]
 
   oid = get_oid(org_slug, app_key, auth)
 
@@ -59,7 +59,7 @@ def send_to_new_importer(org_slug, path, compression, is_full_import, auto_inges
 end
 
 def get_oid(org_slug, app_key, auth)
-  uri = URI.parse(URI.encode(conf['api_url'] + "/auth/organizations/slug/#{org_slug}?auth=#{auth}&auth_provider=evertrueapptoken&app_key=#{app_key}"))
+  uri = URI.parse(URI.encode(conf[:api_url] + "/auth/organizations/slug/#{org_slug}?auth=#{auth}&auth_provider=evertrueapptoken&app_key=#{app_key}"))
   http = Net::HTTP.new(uri.host, uri.port)
   http.use_ssl = true
 
@@ -72,7 +72,7 @@ def get_oid(org_slug, app_key, auth)
 end
 
 def post_to_new_importer(oid, s3_filename, compression, is_full_import, app_key, auth)
-  uri = URI.parse(URI.encode(conf['api_url'] + "/importer/v1/jobs?oid=#{oid}&auth=#{auth}&auth_provider=evertrueapptoken&app_key=#{app_key}"))
+  uri = URI.parse(URI.encode(conf[:api_url] + "/importer/v1/jobs?oid=#{oid}&auth=#{auth}&auth_provider=evertrueapptoken&app_key=#{app_key}"))
   http = Net::HTTP.new(uri.host, uri.port)
   http.use_ssl = true
 
@@ -93,7 +93,7 @@ def post_to_new_importer(oid, s3_filename, compression, is_full_import, app_key,
 end
 
 def queue_to_new_importer(oid, job_id, app_key, auth)
-  uri = URI.parse(URI.encode(conf['api_url'] + "/importer/v1/jobs/queue/#{job_id}?oid=#{oid}&auth=#{auth}&auth_provider=evertrueapptoken&app_key=#{app_key}"))
+  uri = URI.parse(URI.encode(conf[:api_url] + "/importer/v1/jobs/queue/#{job_id}?oid=#{oid}&auth=#{auth}&auth_provider=evertrueapptoken&app_key=#{app_key}"))
   http = Net::HTTP.new(uri.host, uri.port)
   http.use_ssl = true
 

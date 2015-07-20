@@ -93,8 +93,7 @@ end
 %w(process_uploads
    generate_random_user_and_pass
    show_uploads).each do |file|
-  cookbook_file file do
-    path "/opt/evertrue/upload/#{file}"
+  cookbook_file "/opt/evertrue/upload/#{file}" do
     mode 0755
   end
 end

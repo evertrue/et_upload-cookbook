@@ -74,7 +74,6 @@ upload_auth_token = upload_creds['auth_token']
     group 'root'
     mode '0755'
     variables unames: unames
-    only_if 'test -d /opt/evertrue/upload'
   end
 end
 
@@ -92,7 +91,6 @@ end
       upload_app_key:        node['et_upload']['upload_app_key'] || upload_app_key,
       upload_auth_token:     node['et_upload']['upload_auth_token'] || upload_auth_token
     )
-    only_if 'test -d /opt/evertrue/upload'
   end
 end
 
@@ -102,7 +100,6 @@ end
     owner 'root'
     group 'root'
     mode '0755'
-    only_if 'test -d /opt/evertrue/upload'
   end
 end
 

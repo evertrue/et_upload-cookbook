@@ -67,6 +67,20 @@ upload_creds = data_bag_item(
 upload_app_key    = upload_creds['app_key']
 upload_auth_token = upload_creds['auth_token']
 
+settings = {
+      api_url:               node['et_upload']['api_url'],
+      unames:                unames,
+      aws_access_key_id:     node['et_upload']['aws_access_key_id'] || aws_access_key_id,
+      aws_secret_access_key: node['et_upload']['aws_secret_access_key'] || aws_secret_access_key,
+      upload_app_key:        node['et_upload']['upload_app_key'] || upload_app_key,
+      upload_auth_token:     node['et_upload']['upload_auth_token'] || upload_auth_token
+}
+
+file "/opt/evertrue/config.yml" do
+  content settings.to_yaml
+  mode 0600
+end
+
 %w(show_uploads).each do |file|
   template "/opt/evertrue/upload/#{file}.sh" do
     source "#{file}.erb"
@@ -77,24 +91,7 @@ upload_auth_token = upload_creds['auth_token']
   end
 end
 
-%w(process_uploads).each do |file|
-  template "/opt/evertrue/upload/#{file}.rb" do
-    source "#{file}.erb"
-    owner 'root'
-    group 'root'
-    mode '0755'
-    variables(
-      api_url:               node['et_upload']['api_url'],
-      unames:                unames,
-      aws_access_key_id:     node['et_upload']['aws_access_key_id'] || aws_access_key_id,
-      aws_secret_access_key: node['et_upload']['aws_secret_access_key'] || aws_secret_access_key,
-      upload_app_key:        node['et_upload']['upload_app_key'] || upload_app_key,
-      upload_auth_token:     node['et_upload']['upload_auth_token'] || upload_auth_token
-    )
-  end
-end
-
-%w(generate_random_user_and_pass.sh).each do |file|
+%w(process_uploads.rb generate_random_user_and_pass.sh).each do |file|
   cookbook_file file do
     path "/opt/evertrue/upload/#{file}"
     owner 'root'

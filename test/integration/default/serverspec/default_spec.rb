@@ -64,7 +64,7 @@ describe 'Upload Scripts' do
   scripts_path = '/opt/evertrue/upload'
   shell        = '/bin/bash'
   path         = '/sbin:/bin:/usr/sbin:/usr/bin'
-  mailto       = 'hai.zhou+upload@evertrue.com'
+  mailto       = 'sftp-uploader@evertrue.com'
 
   describe file('/opt/evertrue/config.yml') do
     it { is_expected.to be_mode 600 }

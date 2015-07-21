@@ -196,7 +196,7 @@ describe 'Process uploads' do
 
   describe command('/opt/evertrue/upload/process_uploads') do
     its(:exit_status) { should eq 0 }
-    its(:stdout) { should match 'sent file /home/amherst4451/uploads/test_gifts_files.csv for processing' }
+    its(:stdout) { should match 'sent file /home/amherst4451/uploads/test_gifts_file.gifts.csv for processing' }
     upload_users.each { |uname, _u| its(:stdout) { should match "Uploaded data from: #{uname}" } }
   end
 end

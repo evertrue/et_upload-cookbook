@@ -59,7 +59,7 @@ rescue Exception => e
   puts e.backtrace
 end
 
-def send_to_new_importer(org_slug, path, compression, is_full_import, auto_ingest)
+def send_to_s3(org_slug, path)
   s3 = AWS::S3.new(
     access_key_id: conf[:aws_access_key_id],
     secret_access_key: conf[:aws_secret_access_key]
@@ -68,7 +68,10 @@ def send_to_new_importer(org_slug, path, compression, is_full_import, auto_inges
   now = DateTime.now.strftime('%Q')
   s3_filename = "#{now}-#{File.basename(path)}"
   bucket.objects["#{org_slug}/data/#{s3_filename}"].write(Pathname.new(path))
+  s3_filename
+end
 
+def send_to_new_importer(org_slug, s3_filename, compression, is_full_import, auto_ingest)
   app_key = conf[:upload_app_key]
   auth = conf[:upload_auth_token]
 
@@ -135,7 +138,8 @@ def process(org_slug, path, compression, auto_ingest)
 
   is_full_import = !(File.basename(path) =~ /\.full\./i).nil?
 
-  send_to_new_importer(org_slug, path, compression, is_full_import, auto_ingest)
+  s3_filename = send_to_s3(org_slug, path)
+  send_to_new_importer(org_slug, s3_filename, compression, is_full_import, auto_ingest)
   puts "sent file #{path} for processing"
 
   compressed_path = compress_if_not_already(path, compression)

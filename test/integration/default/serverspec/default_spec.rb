@@ -3,7 +3,7 @@ require 'json'
 
 upload_users_file = File.open('/tmp/kitchen/data_bags/users/upload.json').read
 upload_users = JSON.parse(upload_users_file)
-  .select { |uname, conf| uname != 'id' && !conf['mock'] }
+  .select { |uname, conf| uname != 'id' && !conf['mock'] && conf['action'] != 'remove' }
 
 describe 'SSH Service' do
   %w(22 43827).each do |port|

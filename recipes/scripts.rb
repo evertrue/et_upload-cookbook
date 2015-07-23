@@ -46,7 +46,7 @@ end
 end
 
 unames_db = data_bag_item('users', 'upload')
-unames = unames_db.select { |uname, conf| uname != 'id' && !conf['mock'] }.keys
+unames = unames_db.select { |uname, conf| uname != 'id' && !conf['mock'] && conf['action'] != 'remove' }.keys
 
 Chef::Log.debug("unames_db: #{unames_db.inspect}")
 Chef::Log.debug("unames: #{unames}")

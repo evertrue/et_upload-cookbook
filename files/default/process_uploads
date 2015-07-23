@@ -71,13 +71,12 @@ def send_to_s3(org_slug, path)
   s3_filename
 end
 
-def send_to_new_importer(org_slug, s3_filename, compression, is_full_import, auto_ingest)
+def send_to_new_importer(org_slug, s3_filename, compression, is_full_import, is_gift_import, auto_ingest)
   app_key = conf[:upload_app_key]
   auth = conf[:upload_auth_token]
 
-  oid = get_oid(org_slug, app_key, auth)
-
-  job_id = post_to_new_importer(oid, s3_filename, compression, is_full_import, app_key, auth)
+     oid = get_oid(org_slug, app_key, auth)
+  job_id = post_to_new_importer(oid, s3_filename, compression, is_full_import, is_gift_import, app_key, auth)
 
   if auto_ingest == 0
     puts "skipped auto-ingestion for #{org_slug}"
@@ -95,13 +94,14 @@ rescue Exception => e
   puts e.backtrace
 end
 
-def post_to_new_importer(oid, s3_filename, compression, is_full_import, app_key, auth)
-  data = {
-    's3_filename' => s3_filename,
-    'compression' => compression,
-    'prune' => is_full_import,
-    'notify' => 1
-  }
+def post_to_new_importer(oid, s3_filename, compression, is_full_import, is_gift_import, app_key, auth)
+  data = { 's3_filename' => s3_filename, 'notify' => 1, 'compression' => compression }
+
+  if is_gift_import
+    data['type'] = 'TRANSACTIONAL_CSV'
+  else
+    data['prune'] = is_full_import
+  end
 
   post_to_api(conf[:api_url] + "/importer/v1/jobs?oid=#{oid}&auth=#{auth}&auth_provider=evertrueapptoken&app_key=#{app_key}", data)['id']
 rescue Exception => e
@@ -137,9 +137,10 @@ def process(org_slug, path, compression, auto_ingest)
   return unless `lsof #{Shellwords.shellescape path}`.empty?
 
   is_full_import = !(File.basename(path) =~ /\.full\./i).nil?
+  is_gift_import = !(File.basename(path) =~ /\.gifts\./i).nil?
 
   s3_filename = send_to_s3(org_slug, path)
-  send_to_new_importer(org_slug, s3_filename, compression, is_full_import, auto_ingest)
+  send_to_new_importer(org_slug, s3_filename, compression, is_full_import, is_gift_import, auto_ingest)
   puts "sent file #{path} for processing"
 
   compressed_path = compress_if_not_already(path, compression)
@@ -184,7 +185,7 @@ def main
     end
   end
 
-  puts "Uploaded data from: #{processed_users.join(', ')}"
+  puts "Uploaded data from: #{processed_users.join(', ')}" unless processed_users.empty?
 end
 
 main

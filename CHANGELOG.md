@@ -2,6 +2,14 @@ et_upload cookbook CHANGELOG
 ============================
 This file is used to list changes made in each version of the et_upload cookbook.
 
+v2.0.18 (2015-07-23)
+-------------------
+
+* Refactor process_upload script and surrounding infrastructure
+* Testing on Ubuntu 14.4
+* Add integration test for process_upload script
+* Many minor bug fixes and improvements
+
 v2.0.17 (2015-04-27)
 -------------------
 

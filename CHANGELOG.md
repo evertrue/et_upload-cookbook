@@ -2,6 +2,11 @@ et_upload cookbook CHANGELOG
 ============================
 This file is used to list changes made in each version of the et_upload cookbook.
 
+v2.1.1 (2015-07-23)
+-------------------
+
+* Filter out users with action property set to 'remove'
+
 v2.1.0 (2015-07-23)
 -------------------
 

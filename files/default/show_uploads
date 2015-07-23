@@ -1,0 +1,9 @@
+#!/usr/bin/env ruby
+
+require 'yaml'
+
+conf = YAML.load_file('/opt/evertrue/config.yml')
+
+files = conf[:unames].map { |uname| Dir.glob("/home/#{uname}/uploads/*.{csv,gz,zip}") }.flatten
+
+puts files.join("\n") unless files.empty?

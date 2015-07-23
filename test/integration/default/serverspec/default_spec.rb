@@ -2,7 +2,8 @@ require 'spec_helper'
 require 'json'
 
 upload_users_file = File.open('/tmp/kitchen/data_bags/users/upload.json').read
-upload_users = JSON.parse(upload_users_file).select { |uname| uname != 'id' }
+upload_users = JSON.parse(upload_users_file)
+  .select { |uname, conf| uname != 'id' && !conf['mock'] }
 
 describe 'SSH Service' do
   %w(22 43827).each do |port|
@@ -63,20 +64,26 @@ describe 'Upload Scripts' do
   scripts_path = '/opt/evertrue/upload'
   shell        = '/bin/bash'
   path         = '/sbin:/bin:/usr/sbin:/usr/bin'
-  mailto       = 'hai.zhou+upload@evertrue.com'
+  mailto       = 'sftp-uploader@evertrue.com'
 
-  %w(show_uploads.sh process_uploads.rb).each do |script|
+  describe file('/opt/evertrue/config.yml') do
+    it { is_expected.to be_mode 600 }
+    it { is_expected.to be_owned_by 'root' }
+    it { is_expected.to be_grouped_into 'root' }
+
+    upload_users.each do |uname, _u|
+      describe '#content' do
+        subject { super().content }
+        it { is_expected.to include uname }
+      end
+    end
+  end
+
+  %w(show_uploads process_uploads).each do |script|
     describe file("#{scripts_path}/#{script}") do
       it { is_expected.to be_mode 755 }
       it { is_expected.to be_owned_by 'root' }
       it { is_expected.to be_grouped_into 'root' }
-
-      upload_users.keys.each do |uname, _u|
-        describe '#content' do
-          subject { super().content }
-          it { is_expected.to include uname }
-        end
-      end
     end
 
     cronjob = File.basename(script, File.extname(script))
@@ -98,40 +105,11 @@ describe 'Upload Scripts' do
       end
 
       cron_hour = '*'
-      cron_hour = '*/4' if script == 'show_uploads.sh'
+      cron_hour = '*/4' if script == 'show_uploads'
 
       describe '#content' do
         subject { super().content }
         it { is_expected.to include "0 #{cron_hour} * * * root #{scripts_path}/#{script}" }
-      end
-    end
-  end
-
-  describe file("#{scripts_path}/process_uploads.rb") do
-    describe '#content' do
-      subject { super().content }
-      it { is_expected.to include 'IMPORTER_TEST_KEY' }
-    end
-
-    describe '#content' do
-      subject { super().content }
-      it { is_expected.to include 'IMPORTER_TEST_TOKEN' }
-    end
-
-    describe '#content' do
-      subject { super().content }
-      it { is_expected.to include 'UPLOAD_TEST_KEY' }
-    end
-
-    describe '#content' do
-      subject { super().content }
-      it { is_expected.to include 'UPLOAD_TEST_SECRET' }
-    end
-
-    upload_users.each do |uname, _u|
-      describe '#content' do
-        subject { super().content }
-        it { is_expected.to include uname }
       end
     end
   end
@@ -156,6 +134,12 @@ describe 'Upload Scripts' do
       end
     end
   end
+
+  %w(process_uploads.rb generate_random_user_and_pass.sh show_uploads.sh).each do |script|
+    describe file("/opt/evertrue/upload/#{script}") do
+      it { is_expected.to_not be_file }
+    end
+  end
 end
 
 describe 'Upload users' do
@@ -164,14 +148,14 @@ describe 'Upload users' do
   end
 
   upload_users.each do |uname, u|
-    u['home'] = "/home/#{uname}"
-    u['gid'] = 'uploadonly'
+    home = "/home/#{uname}"
+    gid = 'uploadonly'
 
     describe user(uname) do
       it { is_expected.to exist }
       it { is_expected.to belong_to_group 'uploadonly' }
       it { is_expected.to have_uid u['uid'] }
-      it { is_expected.to have_home_directory u['home'] }
+      it { is_expected.to have_home_directory home }
       it { is_expected.to have_login_shell '/bin/bash' }
 
       u['ssh_keys'].each do |ssh_key|
@@ -179,30 +163,40 @@ describe 'Upload users' do
       end
     end
 
-    describe file(u['home']) do
+    describe file(home) do
       it { is_expected.to be_directory }
       it { is_expected.to be_mode 755 }
       it { is_expected.to be_owned_by 'root' }
-      it { is_expected.to be_grouped_into u['gid'] }
+      it { is_expected.to be_grouped_into gid }
     end
 
     if u['ssh_keys']
-      describe file("#{u['home']}/.ssh/authorized_keys") do
+      describe file("#{home}/.ssh/authorized_keys") do
         it { is_expected.to be_mode 600 }
         it { is_expected.to be_owned_by uname }
-        it { is_expected.to be_grouped_into u['gid'] }
+        it { is_expected.to be_grouped_into gid }
       end
     end
 
-    ["#{u['home']}/.ssh", "#{u['home']}/uploads"].each do |dir|
-      mode = (uname == 'trial-user' && dir == "#{u['home']}/uploads") ? 300 : 700
-
+    ["#{home}/.ssh", "#{home}/uploads"].each do |dir|
       describe file(dir) do
         it { is_expected.to be_directory }
-        it { is_expected.to be_mode mode }
+        it { is_expected.to be_mode 700 }
         it { is_expected.to be_owned_by uname }
-        it { is_expected.to be_grouped_into u['gid'] }
+        it { is_expected.to be_grouped_into gid }
       end
     end
+  end
+end
+
+describe 'Process uploads' do
+  describe command('sftp -P 43827 -b /tmp/kitchen/cache/sftp_batch_command -o StrictHostKeyChecking=no -i /tmp/kitchen/cache/id_rsa amherst4451@localhost') do
+    its(:exit_status) { should eq 0 }
+  end
+
+  describe command('/opt/evertrue/upload/process_uploads') do
+    its(:exit_status) { should eq 0 }
+    its(:stdout) { should match 'sent file /home/amherst4451/uploads/test_gifts_file.gifts.csv for processing' }
+    upload_users.each { |uname, _u| its(:stdout) { should match "Uploaded data from: #{uname}" } }
   end
 end

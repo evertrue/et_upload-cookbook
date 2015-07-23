@@ -8,10 +8,17 @@ provisioner:
     environment: test
 
 platforms:
-  - name: ubuntu-12.04
+  - name: ubuntu-14.04
 
 suites:
   - name: default
     run_list:
+      - recipe[test::default]
       - recipe[et_upload::default]
     attributes:
+      et_upload:
+        api_url: "https://stage-api.evertrue.com"
+        aws_access_key_id: <%= ENV['AWS_ACCESS_KEY_ID'] %>
+        aws_secret_access_key: <%= ENV['AWS_SECRET_ACCESS_KEY'] %>
+        upload_app_key: <%= ENV['UPLOAD_ET_APP_KEY'] %>
+        upload_auth_token: <%= ENV['UPLOAD_ET_AUTH_TOKEN'] %>

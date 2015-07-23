@@ -4,18 +4,20 @@
     "uid": 10042,
     "ssh_keys": [ "ssh-key-1" ],
     "comment": "Test User 1",
-    "password": "$6$UiWsps6a$Qxoz2oLDNyrVk1gEhk5CnjzNGnTY6iMYr5GqKK.PMDahmouI2fm8UF8LK.BHqQYgu9dDZ9eTdVEWMT7jzZ3d91"
+    "password": "$6$UiWsps6a$Qxoz2oLDNyrVk1gEhk5CnjzNGnTY6iMYr5GqKK.PMDahmouI2fm8UF8LK.BHqQYgu9dDZ9eTdVEWMT7jzZ3d91",
+    "mock": true
   },
   "test-user-2": {
     "uid": 10041,
     "ssh_keys": [ "ssh-key-2" ],
     "comment": "Test User 2",
-    "password": "$6$UiWsps6a$Qxoz2oLDNyrVk1gEhk5CnjzNGnTY6iMYr5GqKK.PMDahmouI2fm8UF8LK.BHqQYgu9dDZ9eTdVEWMT7jzZ3d91"
+    "password": "$6$UiWsps6a$Qxoz2oLDNyrVk1gEhk5CnjzNGnTY6iMYr5GqKK.PMDahmouI2fm8UF8LK.BHqQYgu9dDZ9eTdVEWMT7jzZ3d91",
+    "mock": true
   },
-  "trial-user": {
-    "uid": 10040,
-    "ssh_keys": [],
-    "comment": "Shared Trial User",
-    "password": "$6$UiWsps6a$Qxoz2oLDNyrVk1gEhk5CnjzNGnTY6iMYr5GqKK.PMDahmouI2fm8UF8LK.BHqQYgu9dDZ9eTdVEWMT7jzZ3d91"
+  "amherst4451": {
+    "uid": 12414,
+    "ssh_keys": ["ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDGiSkdSyWLsRzwXhPOz7xN14rhPOsldWbhaEJRzWuxtLxShZ48mWJl2SzTqX3o1zu8IgpP6kC4w+qCXYohcJeUU9RJ6mNN7cwFtoSCJeUAgt392t/ZJCIvfVXKLj+PgE0svwEtsW49uItku3CySfaoKQAtgwopc6gIk/3Jr6gWF5sYeOkymCYUzw3y1Rg0sB4TL0UC3dacQYt3BYcG3smKOuFlBtbyA8aS1T7jPCCxPpemEQ/VxM1pigr22BvT5wHnt20CI6HTPgBeiTYfpahcPLi4xHvLpAyF6bPdeja6712Ato3VZqI93qBlP60KjYTVh1AU6XdZqO7tAH8gnP1h atironati@Alexs-MacBook-Pro.local"],
+    "comment": "Amherst",
+    "password": "!"
   }
 }

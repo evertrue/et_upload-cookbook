@@ -57,12 +57,10 @@ upload_users.each do |uname, u|
     end
 
     ["#{u['home']}/.ssh", "#{u['home']}/uploads"].each do |dir|
-      mode = uname.include?('trial') && dir.include?('uploads') ? '0300' : '0700'
-
       directory dir do
         owner uname
         group u['gid']
-        mode mode
+        mode 0700
       end
     end
 

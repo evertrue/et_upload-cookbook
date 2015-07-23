@@ -22,11 +22,18 @@ when 'debian'
   include_recipe 'apt'
 end
 
+include_recipe 'build-essential'
+
 %w(ruby1.9.1 ruby1.9.1-dev).each do |pkg|
   package pkg
 end
 
-%w(aws-sdk rubyzip multipart-post).each do |gem_pkg|
+gem_package 'aws-sdk' do
+  version '~> 1.0'
+  action :upgrade
+end
+
+%w(rubyzip multipart-post).each do |gem_pkg|
   gem_package gem_pkg
 end
 
@@ -38,7 +45,11 @@ end
   end
 end
 
-unames = data_bag_item('users', 'upload').keys.select { |uname| uname != 'id' }
+unames_db = data_bag_item('users', 'upload')
+unames = unames_db.select { |uname, conf| uname != 'id' && !conf['mock'] }.keys
+
+Chef::Log.debug("unames_db: #{unames_db.inspect}")
+Chef::Log.debug("unames: #{unames}")
 
 s3_creds = data_bag_item(
   'secrets',
@@ -56,52 +67,45 @@ upload_creds = data_bag_item(
 upload_app_key    = upload_creds['app_key']
 upload_auth_token = upload_creds['auth_token']
 
-%w(show_uploads).each do |file|
-  template "/opt/evertrue/upload/#{file}.sh" do
-    source "#{file}.erb"
-    owner 'root'
-    group 'root'
-    mode '0755'
-    variables unames: unames
-    only_if 'test -d /opt/evertrue/upload'
-  end
-end
-
-%w(process_uploads).each do |file|
-  template "/opt/evertrue/upload/#{file}.rb" do
-    source "#{file}.erb"
-    owner 'root'
-    group 'root'
-    mode '0755'
-    variables(
+settings = {
+      api_url:               node['et_upload']['api_url'],
       unames:                unames,
-      aws_access_key_id:     aws_access_key_id,
-      aws_secret_access_key: aws_secret_access_key,
-      upload_app_key:        upload_app_key,
-      upload_auth_token:     upload_auth_token
-    )
-    only_if 'test -d /opt/evertrue/upload'
+      aws_access_key_id:     node['et_upload']['aws_access_key_id'] || aws_access_key_id,
+      aws_secret_access_key: node['et_upload']['aws_secret_access_key'] || aws_secret_access_key,
+      upload_app_key:        node['et_upload']['upload_app_key'] || upload_app_key,
+      upload_auth_token:     node['et_upload']['upload_auth_token'] || upload_auth_token
+}
+
+file "/opt/evertrue/config.yml" do
+  content settings.to_yaml
+  mode 0600
+end
+
+# Delete old files
+%w(process_uploads.rb
+   generate_random_user_and_pass.sh
+   show_uploads.sh).each do |file|
+  file "/opt/evertrue/upload/#{file}" do
+    action :delete
   end
 end
 
-%w(generate_random_user_and_pass.sh).each do |file|
-  cookbook_file file do
-    path "/opt/evertrue/upload/#{file}"
-    owner 'root'
-    group 'root'
-    mode '0755'
-    only_if 'test -d /opt/evertrue/upload'
+%w(process_uploads
+   generate_random_user_and_pass
+   show_uploads).each do |file|
+  cookbook_file "/opt/evertrue/upload/#{file}" do
+    mode 0755
   end
 end
 
 shell  = '/bin/bash'
 path   = '/sbin:/bin:/usr/sbin:/usr/bin'
-mailto = 'hai.zhou+upload@evertrue.com'
+mailto = 'sftp-uploader@evertrue.com'
 
 cron_d 'show_uploads' do
   minute  0
   hour    '*/4'
-  command '/opt/evertrue/upload/show_uploads.sh'
+  command '/opt/evertrue/upload/show_uploads'
   user    'root'
   shell   shell
   path    path
@@ -110,7 +114,7 @@ end
 
 cron_d 'process_uploads' do
   minute  0
-  command '/opt/evertrue/upload/process_uploads.rb'
+  command '/opt/evertrue/upload/process_uploads'
   user    'root'
   shell   shell
   path    path

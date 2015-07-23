@@ -2,6 +2,12 @@ et_upload cookbook CHANGELOG
 ============================
 This file is used to list changes made in each version of the et_upload cookbook.
 
+v2.1.0 (2015-07-23)
+-------------------
+
+* Allow Transactional Gift file processing through the process_uploads
+  script
+
 v2.0.18 (2015-07-23)
 -------------------
 

@@ -2,6 +2,11 @@ et_upload cookbook CHANGELOG
 ============================
 This file is used to list changes made in each version of the et_upload cookbook.
 
+v2.1.2 (2015-07-24)
+-------------------
+
+* Add tests for general Contact import path in process_uploads
+
 v2.1.1 (2015-07-23)
 -------------------
 

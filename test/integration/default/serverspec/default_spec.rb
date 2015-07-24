@@ -190,13 +190,23 @@ describe 'Upload users' do
 end
 
 describe 'Process uploads' do
-  describe command('sftp -P 43827 -b /tmp/kitchen/cache/sftp_batch_command -o StrictHostKeyChecking=no -i /tmp/kitchen/cache/id_rsa amherst4451@localhost') do
+  describe command('sftp -P 43827 -b /tmp/kitchen/cache/sftp_batch_command_gifts -o StrictHostKeyChecking=no -i /tmp/kitchen/cache/id_rsa amherst4451@localhost') do
     its(:exit_status) { should eq 0 }
   end
 
   describe command('/opt/evertrue/upload/process_uploads') do
     its(:exit_status) { should eq 0 }
     its(:stdout) { should match 'sent file /home/amherst4451/uploads/test_gifts_file.gifts.csv for processing' }
+    upload_users.each { |uname, _u| its(:stdout) { should match "Uploaded data from: #{uname}" } }
+  end
+
+  describe command('sftp -P 43827 -b /tmp/kitchen/cache/sftp_batch_command_contacts -o StrictHostKeyChecking=no -i /tmp/kitchen/cache/id_rsa amherst4451@localhost') do
+    its(:exit_status) { should eq 0 }
+  end
+
+  describe command('/opt/evertrue/upload/process_uploads') do
+    its(:exit_status) { should eq 0 }
+    its(:stdout) { should match 'sent file /home/amherst4451/uploads/test_contacts_file.csv for processing' }
     upload_users.each { |uname, _u| its(:stdout) { should match "Uploaded data from: #{uname}" } }
   end
 end

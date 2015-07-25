@@ -71,6 +71,14 @@ def send_to_s3(org_slug, path)
   s3_filename
 end
 
+def get_oid(org_slug, app_key, auth)
+  get_from_api(conf[:api_url] + "/auth/organizations/slug/#{org_slug}?auth=#{auth}&auth_provider=evertrueapptoken&app_key=#{app_key}")['id']
+rescue Exception => e
+  puts "Error sending org_slug: #{org_slug}"
+  puts e.message
+  puts e.backtrace
+end
+
 def send_to_new_importer(org_slug, s3_filename, compression, is_full_import, is_gift_import, auto_ingest)
   app_key = conf[:upload_app_key]
   auth = conf[:upload_auth_token]
@@ -84,14 +92,6 @@ def send_to_new_importer(org_slug, s3_filename, compression, is_full_import, is_
   end
 
   queue_to_new_importer(oid, job_id, app_key, auth)
-end
-
-def get_oid(org_slug, app_key, auth)
-  get_from_api(conf[:api_url] + "/auth/organizations/slug/#{org_slug}?auth=#{auth}&auth_provider=evertrueapptoken&app_key=#{app_key}")['id']
-rescue Exception => e
-  puts "Error sending org_slug: #{org_slug}"
-  puts e.message
-  puts e.backtrace
 end
 
 def post_to_new_importer(oid, s3_filename, compression, is_full_import, is_gift_import, app_key, auth)

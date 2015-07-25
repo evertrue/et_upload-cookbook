@@ -71,8 +71,8 @@ def send_to_s3(org_slug, path)
   s3_filename
 end
 
-def get_oid(org_slug, app_key, auth)
-  get_from_api(conf[:api_url] + "/auth/organizations/slug/#{org_slug}?auth=#{auth}&auth_provider=evertrueapptoken&app_key=#{app_key}")['id']
+def get_oid(org_slug)
+  get_from_api(conf[:api_url] + "/auth/organizations/slug/#{org_slug}?auth=#{conf[:upload_auth_token]}&auth_provider=evertrueapptoken&app_key=#{conf[:upload_app_key]}")['id']
 rescue Exception => e
   puts "Error sending org_slug: #{org_slug}"
   puts e.message
@@ -83,18 +83,19 @@ def send_to_new_importer(org_slug, s3_filename, compression, is_full_import, is_
   app_key = conf[:upload_app_key]
   auth = conf[:upload_auth_token]
 
-     oid = get_oid(org_slug, app_key, auth)
-  job_id = post_to_new_importer(oid, s3_filename, compression, is_full_import, is_gift_import, app_key, auth)
+def send_to_new_importer(org_slug, s3_filename, compression, is_full_import, is_gift_import, auto_ingest)
+     oid = get_oid(org_slug)
+  job_id = post_to_new_importer(oid, s3_filename, compression, is_full_import, is_gift_import)
 
   if auto_ingest == 0
     puts "skipped auto-ingestion for #{org_slug}"
     return
   end
 
-  queue_to_new_importer(oid, job_id, app_key, auth)
+  queue_to_new_importer(oid, job_id)
 end
 
-def post_to_new_importer(oid, s3_filename, compression, is_full_import, is_gift_import, app_key, auth)
+def post_to_new_importer(oid, s3_filename, compression, is_full_import, is_gift_import)
   data = { 's3_filename' => s3_filename, 'notify' => 1, 'compression' => compression }
 
   if is_gift_import
@@ -103,15 +104,15 @@ def post_to_new_importer(oid, s3_filename, compression, is_full_import, is_gift_
     data['prune'] = is_full_import
   end
 
-  post_to_api(conf[:api_url] + "/importer/v1/jobs?oid=#{oid}&auth=#{auth}&auth_provider=evertrueapptoken&app_key=#{app_key}", data)['id']
+  post_to_api(conf[:api_url] + "/importer/v1/jobs?oid=#{oid}&auth=#{conf[:upload_auth_token]}&auth_provider=evertrueapptoken&app_key=#{conf[:upload_app_key]}", data)['id']
 rescue Exception => e
   puts "Error sending oid: #{oid}, s3_filename: #{s3_filename}"
   puts e.message
   puts e.backtrace
 end
 
-def queue_to_new_importer(oid, job_id, app_key, auth)
-  post_to_api(conf[:api_url] + "/importer/v1/jobs/queue/#{job_id}?oid=#{oid}&auth=#{auth}&auth_provider=evertrueapptoken&app_key=#{app_key}", {})
+def queue_to_new_importer(oid, job_id)
+  post_to_api(conf[:api_url] + "/importer/v1/jobs/queue/#{job_id}?oid=#{oid}&auth=#{conf[:upload_auth_token]}&auth_provider=evertrueapptoken&app_key=#{conf[:upload_app_key]}", {})
 rescue Exception => e
   puts "Error queueing oid: #{oid}, job_id: #{job_id}"
   puts e.message

@@ -80,10 +80,6 @@ rescue Exception => e
 end
 
 def send_to_new_importer(org_slug, s3_filename, compression, is_full_import, is_gift_import, auto_ingest)
-  app_key = conf[:upload_app_key]
-  auth = conf[:upload_auth_token]
-
-def send_to_new_importer(org_slug, s3_filename, compression, is_full_import, is_gift_import, auto_ingest)
      oid = get_oid(org_slug)
   job_id = post_to_new_importer(oid, s3_filename, compression, is_full_import, is_gift_import)
 
@@ -93,6 +89,20 @@ def send_to_new_importer(org_slug, s3_filename, compression, is_full_import, is_
   end
 
   queue_to_new_importer(oid, job_id)
+end
+
+def get_header_change_status_from_importer(oid, s3_filename, compression, is_full_import, is_gift_import)
+  data = { 's3_filename' => s3_filename, 'notify' => 1, 'compression' => compression }
+
+  if is_gift_import
+    data['type'] = 'TRANSACTIONAL_CSV'
+  end
+
+  get_from_api(conf[:api_url] + "/importer/v1/jobs?oid=#{oid}&auth=#{conf[:upload_auth_token]}&auth_provider=evertrueapptoken&app_key=#{conf[:upload_app_key]}", data)['mappingExists']
+rescue Exception => e
+  puts "Error sending oid: #{oid}, s3_filename: #{s3_filename}"
+  puts e.message
+  puts e.backtrace
 end
 
 def post_to_new_importer(oid, s3_filename, compression, is_full_import, is_gift_import)
@@ -140,7 +150,11 @@ def process(org_slug, path, compression, auto_ingest)
   is_full_import = !(File.basename(path) =~ /\.full\./i).nil?
   is_gift_import = !(File.basename(path) =~ /\.gifts\./i).nil?
 
+  oid = get_oid(org_slug)
   s3_filename = send_to_s3(org_slug, path)
+
+  mappingExists = get_header_change_status_from_importer(oid, s3_filename, compression, is_full_import, is_gift_import)
+
   send_to_new_importer(org_slug, s3_filename, compression, is_full_import, is_gift_import, auto_ingest)
   puts "sent file #{path} for processing"
 

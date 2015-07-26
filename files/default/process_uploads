@@ -87,8 +87,7 @@ rescue Exception => e
   puts e.backtrace
 end
 
-def send_to_new_importer(org_slug, s3_filename, compression, is_full_import, is_gift_import, auto_ingest)
-     oid = get_oid(org_slug)
+def send_to_new_importer(org_slug, oid, s3_filename, compression, is_full_import, is_gift_import, auto_ingest)
   job_id = post_to_new_importer(oid, s3_filename, compression, is_full_import, is_gift_import)
 
   if auto_ingest == 0
@@ -164,7 +163,7 @@ def process(org_slug, path, compression, auto_ingest)
   mappingExists = get_header_change_status_from_importer(oid, s3_filename, compression, is_full_import, is_gift_import)
 
   if mappingExists
-    send_to_new_importer(org_slug, s3_filename, compression, is_full_import, is_gift_import, auto_ingest)
+    send_to_new_importer(org_slug, oid, s3_filename, compression, is_full_import, is_gift_import, auto_ingest)
     puts "sent file #{path} for processing"
 
     compressed_path = compress_if_not_already(path, compression)

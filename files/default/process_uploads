@@ -163,14 +163,18 @@ def process(org_slug, path, compression, auto_ingest)
 
   mappingExists = get_header_change_status_from_importer(oid, s3_filename, compression, is_full_import, is_gift_import)
 
-  send_to_new_importer(org_slug, s3_filename, compression, is_full_import, is_gift_import, auto_ingest)
-  puts "sent file #{path} for processing"
+  if mappingExists
+    send_to_new_importer(org_slug, s3_filename, compression, is_full_import, is_gift_import, auto_ingest)
+    puts "sent file #{path} for processing"
 
-  compressed_path = compress_if_not_already(path, compression)
+    compressed_path = compress_if_not_already(path, compression)
 
-  FileUtils.chmod(0700, compressed_path)
-  FileUtils.chown('root', 'root', compressed_path)
-  FileUtils.mv(compressed_path, '/var/evertrue/uploads')
+    FileUtils.chmod(0700, compressed_path)
+    FileUtils.chown('root', 'root', compressed_path)
+    FileUtils.mv(compressed_path, '/var/evertrue/uploads')
+  else
+    puts "Error processing #{path} for #{org_slug}: CSV headers have changed since last import"
+  end
 end
 
 def main

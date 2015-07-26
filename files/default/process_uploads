@@ -21,7 +21,7 @@ def conf
   @conf ||= YAML.load_file('/opt/evertrue/config.yml')
 end
 
-def auth_oid_query_string
+def auth_oid_query_string(oid)
   @auth_oid_query_string ||= "?oid=#{oid}&auth=#{conf[:upload_auth_token]}&auth_provider=evertrueapptoken&app_key=#{conf[:upload_app_key]}"
 end
 
@@ -102,7 +102,7 @@ def get_header_change_status_from_importer(oid, s3_filename, compression, is_ful
   data = { 's3_filename' => s3_filename, 'notify' => 1, 'compression' => compression }
   data['type'] = 'TRANSACTIONAL_CSV' if is_gift_import
 
-  get_from_api(conf[:api_url] + '/importer/v1/jobs' + auth_oid_query_string, data)['mappingExists']
+  get_from_api(conf[:api_url] + '/importer/v1/jobs' + auth_oid_query_string(oid), data)['mappingExists']
 rescue Exception => e
   puts "Error sending oid: #{oid}, s3_filename: #{s3_filename}"
   puts e.message
@@ -118,7 +118,7 @@ def post_to_new_importer(oid, s3_filename, compression, is_full_import, is_gift_
     data['prune'] = is_full_import
   end
 
-  post_to_api(conf[:api_url] + '/importer/v1/jobs' + auth_oid_query_string, data)['id']
+  post_to_api(conf[:api_url] + '/importer/v1/jobs' + auth_oid_query_string(oid), data)['id']
 rescue Exception => e
   puts "Error sending oid: #{oid}, s3_filename: #{s3_filename}"
   puts e.message
@@ -126,7 +126,7 @@ rescue Exception => e
 end
 
 def queue_to_new_importer(oid, job_id)
-  post_to_api(conf[:api_url] + "/importer/v1/jobs/queue/#{job_id}" + auth_oid_query_string, {})
+  post_to_api(conf[:api_url] + "/importer/v1/jobs/queue/#{job_id}" + auth_oid_query_string(oid), {})
 rescue Exception => e
   puts "Error queueing oid: #{oid}, job_id: #{job_id}"
   puts e.message

@@ -100,10 +100,7 @@ end
 
 def get_header_change_status_from_importer(oid, s3_filename, compression, is_full_import, is_gift_import)
   data = { 's3_filename' => s3_filename, 'notify' => 1, 'compression' => compression }
-
-  if is_gift_import
-    data['type'] = 'TRANSACTIONAL_CSV'
-  end
+  data['type'] = 'TRANSACTIONAL_CSV' if is_gift_import
 
   get_from_api(conf[:api_url] + '/importer/v1/jobs' + auth_oid_query_string, data)['mappingExists']
 rescue Exception => e

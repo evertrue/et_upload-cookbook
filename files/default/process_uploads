@@ -102,7 +102,7 @@ def get_header_change_status_from_importer(oid, s3_filename, compression, is_ful
   data = { 's3_filename' => s3_filename, 'notify' => 1, 'compression' => compression }
   data['type'] = 'TRANSACTIONAL_CSV' if is_gift_import
 
-  post_to_api(conf[:api_url] + '/importer/v1/jobs' + auth_oid_query_string(oid), data)['mapping_exists']
+  post_to_api(conf[:api_url] + '/importer/v1/jobs/mapping_check' + auth_oid_query_string(oid), data)['mapping_exists']
 rescue Exception => e
   puts "Error sending oid: #{oid}, s3_filename: #{s3_filename}"
   puts e.message

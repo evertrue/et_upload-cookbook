@@ -156,6 +156,7 @@ end
 
 def process(org_slug, path, compression, auto_ingest)
   return unless `lsof #{Shellwords.shellescape path}`.empty?
+  uploaded = false
 
   is_full_import = !(File.basename(path) =~ /\.full\./i).nil?
   is_gift_import = !(File.basename(path) =~ /\.gifts\./i).nil?
@@ -167,12 +168,13 @@ def process(org_slug, path, compression, auto_ingest)
 
   if mappingExists
     send_to_new_importer(org_slug, oid, s3_filename, compression, is_full_import, is_gift_import, auto_ingest)
-    puts "sent file #{path} for processing"
+    puts "sent file #{path} for processing" unless auto_ingest == 0
+    uploaded = true unless auto_ingest == 0
   else
     data = { 'value' => 'NotifyOnly' }
     post_to_api(conf[:api_url] + '/dna/setting_values/ET.Importer.IngestionMode' + auth_oid_query_string(oid), data, true)
 
-    puts "Error processing #{path} for #{org_slug}: CSV headers have changed since last import"
+    puts "Error processing #{path} for #{org_slug}: CSV headers not recognized"
   end
 
   compressed_path = compress_if_not_already(path, compression)
@@ -180,6 +182,8 @@ def process(org_slug, path, compression, auto_ingest)
   FileUtils.chmod(0700, compressed_path)
   FileUtils.chown('root', 'root', compressed_path)
   FileUtils.mv(compressed_path, conf[:work_dir])
+
+  uploaded
 end
 
 def main
@@ -199,14 +203,14 @@ def main
         begin
           case path
           when /.*\.csv$/i
-            process(org_slug, path, 'NONE', auto_ingest)
-            m << uname
+            uploaded = process(org_slug, path, 'NONE', auto_ingest)
+            m << uname if uploaded
           when /.*\.gz$/i
-            process(org_slug, path, 'GZIP', auto_ingest)
-            m << uname
+            uploaded = process(org_slug, path, 'GZIP', auto_ingest)
+            m << uname if uploaded
           when /.*\.zip$/i
-            process(org_slug, path, 'ZIP', auto_ingest)
-            m << uname
+            uploaded = process(org_slug, path, 'ZIP', auto_ingest)
+            m << uname if uploaded
           end
         rescue => e
           puts "Error processing #{path}: #{e}"

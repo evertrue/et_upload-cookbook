@@ -207,11 +207,13 @@ def main
           uploaded = process(org_slug, path, compression_type)
           processed_usernames << uname if uploaded
         rescue => e
-          puts "Error processing #{path}: #{e}"
+          puts "Error processing path #{path}: #{e}"
+          puts e.backtrace
         end
       end
     rescue => e
-      puts "Error processing #{org_slug}: #{e}"
+      puts "Error processing org #{org_slug}: #{e}"
+      puts e.backtrace
     end
   end
 

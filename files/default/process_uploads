@@ -167,7 +167,7 @@ def process(org_slug, path, compression, auto_ingest)
 
     FileUtils.chmod(0700, compressed_path)
     FileUtils.chown('root', 'root', compressed_path)
-    FileUtils.mv(compressed_path, '/var/evertrue/uploads')
+    FileUtils.mv(compressed_path, conf[:work_dir])
   else
     puts "Error processing #{path} for #{org_slug}: CSV headers have changed since last import"
   end
@@ -186,7 +186,7 @@ def main
         auto_ingest = 1
       end
 
-      Find.find("/home/#{uname}/uploads") do |path|
+      Find.find("#{conf[:upload_dir]}/#{uname}/uploads") do |path|
         begin
           case path
           when /.*\.csv$/i

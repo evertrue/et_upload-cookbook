@@ -17,6 +17,16 @@
 # limitations under the License.
 #
 
+include_recipe 'storage'
+
+if node['storage']['ephemeral_mounts'] && !node['storage']['ephemeral_mounts'].empty?
+    node.set['et_upload']['base_dir'] =
+          "#{node['storage']['ephemeral_mounts'].first}/evertrue"
+else
+    node.set['et_upload']['base_dir'] = '/opt/evertrue'
+end
+
 include_recipe 'openssh::default'
 include_recipe 'et_upload::scripts'
 include_recipe 'et_upload::users'
+

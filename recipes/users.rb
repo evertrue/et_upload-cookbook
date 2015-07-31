@@ -17,6 +17,10 @@
 # limitations under the License.
 #
 
+directory "#{node['et_upload']['base_dir']}/users" do
+  recursive true
+end
+
 group 'uploadonly' do
   action :create
 end
@@ -24,7 +28,7 @@ end
 upload_users = data_bag_item('users', 'upload').select { |uname| uname != 'id' }
 
 upload_users.each do |uname, u|
-  u['home'] = "/home/#{uname}"
+  u['home'] = "#{node['et_upload']['base_dir']}/users/#{uname}"
   u['gid'] = 'uploadonly'
 
   if u['action'] == 'remove'

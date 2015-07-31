@@ -42,12 +42,18 @@ def get_from_api(uri)
   JSON.parse(response.body)
 end
 
-def post_to_api(uri, data)
+def post_to_api(uri, data, put=false)
   uri = URI.parse(URI.encode(uri))
   http = Net::HTTP.new(uri.host, uri.port)
   http.use_ssl = true
 
-  req = Net::HTTP::Post.new(uri.request_uri)
+  req = nil
+  if put
+    req = Net::HTTP::Put.new(uri.request_uri)
+  else
+    req = Net::HTTP::Post.new(uri.request_uri)
+  end
+
   unless data.empty?
     req['Content-Type'] = 'application/json'
     req.body = data.to_json
@@ -165,6 +171,9 @@ def process(org_slug, path, compression, auto_ingest)
 
     compressed_path = compress_if_not_already(path, compression)
   else
+    data = { 'value' => 'NotifyOnly' }
+    post_to_api(conf[:api_url] + '/dna/setting_values/ET.Importer.IngestionMode' + auth_oid_query_string(oid), data, true)
+
     puts "Error processing #{path} for #{org_slug}: CSV headers have changed since last import"
   end
 

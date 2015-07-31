@@ -92,20 +92,9 @@ rescue Exception => e
   puts e.backtrace
 end
 
-def send_to_new_importer(org_slug, oid, s3_filename, compression, is_full_import, is_gift_import, auto_ingest)
-  job_id = post_to_new_importer(oid, s3_filename, compression, is_full_import, is_gift_import)
-
-  if auto_ingest == 0
-    puts "skipped auto-ingestion for #{org_slug}"
-    return
-  end
-
-  queue_to_new_importer(oid, job_id)
-end
-
-def get_header_change_status_from_importer(oid, s3_filename, compression, is_full_import, is_gift_import)
+def get_header_change_status_from_importer(oid, s3_filename, compression, gift_import)
   data = { 's3_filename' => s3_filename, 'notify' => 1, 'compression' => compression }
-  data['type'] = 'TRANSACTIONAL_CSV' if is_gift_import
+  data['type'] = 'TRANSACTIONAL_CSV' if gift_import
 
   post_to_api(conf[:api_url] + '/importer/v1/jobs/mapping_check' + auth_oid_query_string(oid), data)['mapping_exists']
 rescue Exception => e
@@ -114,13 +103,13 @@ rescue Exception => e
   puts e.backtrace
 end
 
-def post_to_new_importer(oid, s3_filename, compression, is_full_import, is_gift_import)
+def post_to_new_importer(oid, s3_filename, compression, full_import, gift_import)
   data = { 's3_filename' => s3_filename, 'notify' => 1, 'compression' => compression }
 
-  if is_gift_import
+  if gift_import
     data['type'] = 'TRANSACTIONAL_CSV'
   else
-    data['prune'] = is_full_import
+    data['prune'] = full_import
   end
 
   post_to_api(conf[:api_url] + '/importer/v1/jobs' + auth_oid_query_string(oid), data)['id']
@@ -153,22 +142,31 @@ def compress_if_not_already(path, compression)
   "#{path}.gz"
 end
 
-def process(org_slug, path, compression, auto_ingest)
+def process(org_slug, path, compression)
   return unless `lsof #{Shellwords.shellescape path}`.empty?
   uploaded = false
 
-  is_full_import = !(File.basename(path) =~ /\.full\./i).nil?
-  is_gift_import = !(File.basename(path) =~ /\.gifts\./i).nil?
+  full_import = !(File.basename(path) =~ /\.full\./i).nil?
+  gift_import = !(File.basename(path) =~ /\.gifts\./i).nil?
 
   oid = get_oid(org_slug)
   s3_filename = send_to_s3(org_slug, path)
 
-  mappingExists = get_header_change_status_from_importer(oid, s3_filename, compression, is_full_import, is_gift_import)
+  mappingExists = get_header_change_status_from_importer(oid, s3_filename, compression, gift_import)
+  job_id = post_to_new_importer(oid, s3_filename, compression, full_import, gift_import)
 
   if mappingExists
-    send_to_new_importer(org_slug, oid, s3_filename, compression, is_full_import, is_gift_import, auto_ingest)
-    puts "sent file #{path} for processing" unless auto_ingest == 0
-    uploaded = true unless auto_ingest == 0
+    auto_ingest_dna_value = get_dna(org_slug, 'ET.Importer.IngestionMode')
+    auto_ingest = auto_ingest_dna_value.nil? || auto_ingest_dna_value != 'AutoIngest'
+
+    if auto_ingest
+      puts "skipped auto-ingestion for #{org_slug}"
+    else
+      queue_to_new_importer(oid, job_id)
+
+      puts "sent file #{path} for processing"
+      uploaded = true
+    end
   else
     data = { 'value' => 'NotifyOnly' }
     post_to_api(conf[:api_url] + '/dna/setting_values/ET.Importer.IngestionMode' + auth_oid_query_string(oid), data, method: put)
@@ -186,31 +184,26 @@ def process(org_slug, path, compression, auto_ingest)
 end
 
 def main
-  processed_users = conf[:unames].each_with_object([]) do |uname, m|
+  processed_users = conf[:unames].each_with_object([]) do |uname, processed_usernames|
     next if uname == 'trial0928'
     org_slug = /(.*?)\d+$/.match(uname)[1]
 
     begin
-      auto_ingest = get_dna(org_slug, 'ET.Importer.IngestionMode')
-      if auto_ingest.nil? || auto_ingest != 'AutoIngest'
-        auto_ingest = 0
-      else
-        auto_ingest = 1
-      end
-
       Find.find("#{conf[:upload_dir]}/#{uname}/uploads") do |path|
         begin
-          case path
-          when /.*\.csv$/i
-            uploaded = process(org_slug, path, 'NONE', auto_ingest)
-            m << uname if uploaded
-          when /.*\.gz$/i
-            uploaded = process(org_slug, path, 'GZIP', auto_ingest)
-            m << uname if uploaded
-          when /.*\.zip$/i
-            uploaded = process(org_slug, path, 'ZIP', auto_ingest)
-            m << uname if uploaded
-          end
+          compression_type = (
+            case path
+            when /.*\.csv$/i
+              'NONE'
+            when /.*\.gz$/i
+              'GZIP'
+            when /.*\.zip$/i
+              'ZIP'
+            end
+          )
+
+          uploaded = process(org_slug, path, compression_type)
+          processed_usernames << uname if uploaded
         rescue => e
           puts "Error processing #{path}: #{e}"
         end

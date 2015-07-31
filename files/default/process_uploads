@@ -164,13 +164,13 @@ def process(org_slug, path, compression, auto_ingest)
     puts "sent file #{path} for processing"
 
     compressed_path = compress_if_not_already(path, compression)
-
-    FileUtils.chmod(0700, compressed_path)
-    FileUtils.chown('root', 'root', compressed_path)
-    FileUtils.mv(compressed_path, conf[:work_dir])
   else
     puts "Error processing #{path} for #{org_slug}: CSV headers have changed since last import"
   end
+
+  FileUtils.chmod(0700, compressed_path)
+  FileUtils.chown('root', 'root', compressed_path)
+  FileUtils.mv(compressed_path, conf[:work_dir])
 end
 
 def main

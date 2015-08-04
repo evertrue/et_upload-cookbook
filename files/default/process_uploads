@@ -21,6 +21,14 @@ def conf
   @conf ||= YAML.load_file('/opt/evertrue/config.yml')
 end
 
+def auth_oid_query_string(oid)
+  @auth_oid_query_string ||= "?oid=#{oid}&auth=#{conf[:upload_auth_token]}&auth_provider=evertrueapptoken&app_key=#{conf[:upload_app_key]}"
+end
+
+def auth_query_string
+  @auth_query_string ||= "?auth=#{conf[:upload_auth_token]}&auth_provider=evertrueapptoken&app_key=#{conf[:upload_app_key]}"
+end
+
 def get_from_api(uri)
   uri = URI.parse(URI.encode(uri))
 
@@ -34,12 +42,17 @@ def get_from_api(uri)
   JSON.parse(response.body)
 end
 
-def post_to_api(uri, data)
+def post_to_api(uri, data, options={})
   uri = URI.parse(URI.encode(uri))
   http = Net::HTTP.new(uri.host, uri.port)
   http.use_ssl = true
 
-  req = Net::HTTP::Post.new(uri.request_uri)
+  req = (if options[:method] == 'put'
+          Net::HTTP::Put.new(uri.request_uri)
+        else
+          Net::HTTP::Post.new(uri.request_uri)
+        end)
+
   unless data.empty?
     req['Content-Type'] = 'application/json'
     req.body = data.to_json
@@ -71,47 +84,43 @@ def send_to_s3(org_slug, path)
   s3_filename
 end
 
-def send_to_new_importer(org_slug, s3_filename, compression, is_full_import, is_gift_import, auto_ingest)
-  app_key = conf[:upload_app_key]
-  auth = conf[:upload_auth_token]
-
-     oid = get_oid(org_slug, app_key, auth)
-  job_id = post_to_new_importer(oid, s3_filename, compression, is_full_import, is_gift_import, app_key, auth)
-
-  if auto_ingest == 0
-    puts "skipped auto-ingestion for #{org_slug}"
-    return
-  end
-
-  queue_to_new_importer(oid, job_id, app_key, auth)
-end
-
-def get_oid(org_slug, app_key, auth)
-  get_from_api(conf[:api_url] + "/auth/organizations/slug/#{org_slug}?auth=#{auth}&auth_provider=evertrueapptoken&app_key=#{app_key}")['id']
+def get_oid(org_slug)
+  get_from_api(conf[:api_url] + "/auth/organizations/slug/#{org_slug}" + auth_query_string)['id']
 rescue Exception => e
   puts "Error sending org_slug: #{org_slug}"
   puts e.message
   puts e.backtrace
 end
 
-def post_to_new_importer(oid, s3_filename, compression, is_full_import, is_gift_import, app_key, auth)
+def get_header_change_status_from_importer(oid, s3_filename, compression, gift_import)
   data = { 's3_filename' => s3_filename, 'notify' => 1, 'compression' => compression }
+  data['type'] = 'TRANSACTIONAL_CSV' if gift_import
 
-  if is_gift_import
-    data['type'] = 'TRANSACTIONAL_CSV'
-  else
-    data['prune'] = is_full_import
-  end
-
-  post_to_api(conf[:api_url] + "/importer/v1/jobs?oid=#{oid}&auth=#{auth}&auth_provider=evertrueapptoken&app_key=#{app_key}", data)['id']
+  post_to_api(conf[:api_url] + '/importer/v1/jobs/mapping_check' + auth_oid_query_string(oid), data)['mapping_exists']
 rescue Exception => e
   puts "Error sending oid: #{oid}, s3_filename: #{s3_filename}"
   puts e.message
   puts e.backtrace
 end
 
-def queue_to_new_importer(oid, job_id, app_key, auth)
-  post_to_api(conf[:api_url] + "/importer/v1/jobs/queue/#{job_id}?oid=#{oid}&auth=#{auth}&auth_provider=evertrueapptoken&app_key=#{app_key}", {})
+def post_to_new_importer(oid, s3_filename, compression, full_import, gift_import)
+  data = { 's3_filename' => s3_filename, 'notify' => 1, 'compression' => compression }
+
+  if gift_import
+    data['type'] = 'TRANSACTIONAL_CSV'
+  else
+    data['prune'] = full_import
+  end
+
+  post_to_api(conf[:api_url] + '/importer/v1/jobs' + auth_oid_query_string(oid), data)['id']
+rescue Exception => e
+  puts "Error sending oid: #{oid}, s3_filename: #{s3_filename}"
+  puts e.message
+  puts e.backtrace
+end
+
+def queue_to_new_importer(oid, job_id)
+  post_to_api(conf[:api_url] + "/importer/v1/jobs/queue/#{job_id}" + auth_oid_query_string(oid), {})
 rescue Exception => e
   puts "Error queueing oid: #{oid}, job_id: #{job_id}"
   puts e.message
@@ -133,55 +142,78 @@ def compress_if_not_already(path, compression)
   "#{path}.gz"
 end
 
-def process(org_slug, path, compression, auto_ingest)
+def process(org_slug, path, compression)
   return unless `lsof #{Shellwords.shellescape path}`.empty?
+  uploaded = false
 
-  is_full_import = !(File.basename(path) =~ /\.full\./i).nil?
-  is_gift_import = !(File.basename(path) =~ /\.gifts\./i).nil?
+  full_import = !(File.basename(path) =~ /\.full\./i).nil?
+  gift_import = !(File.basename(path) =~ /\.gifts\./i).nil?
 
+  oid = get_oid(org_slug)
   s3_filename = send_to_s3(org_slug, path)
-  send_to_new_importer(org_slug, s3_filename, compression, is_full_import, is_gift_import, auto_ingest)
-  puts "sent file #{path} for processing"
+
+  mappingExists = get_header_change_status_from_importer(oid, s3_filename, compression, gift_import)
+  job_id = post_to_new_importer(oid, s3_filename, compression, full_import, gift_import)
+
+  if mappingExists
+    auto_ingest_dna_value = get_dna(org_slug, 'ET.Importer.IngestionMode')
+    auto_ingest = auto_ingest_dna_value.nil? || auto_ingest_dna_value != 'AutoIngest'
+
+    if auto_ingest
+      puts "skipped auto-ingestion for #{org_slug}"
+    else
+      queue_to_new_importer(oid, job_id)
+
+      puts "sent file #{path} for processing"
+      uploaded = true
+    end
+  else
+    data = { 'value' => 'NotifyOnly' }
+    post_to_api(conf[:api_url] + '/dna/setting_values/ET.Importer.IngestionMode' + auth_oid_query_string(oid), data, method: put)
+
+    puts "Error processing #{path} for #{org_slug}: CSV headers not recognized"
+  end
 
   compressed_path = compress_if_not_already(path, compression)
 
   FileUtils.chmod(0700, compressed_path)
   FileUtils.chown('root', 'root', compressed_path)
-  FileUtils.mv(compressed_path, '/var/evertrue/uploads')
+  FileUtils.mv(compressed_path, conf[:work_dir])
+
+  uploaded
 end
 
 def main
-  processed_users = conf[:unames].each_with_object([]) do |uname, m|
+  processed_users = conf[:unames].each_with_object([]) do |uname, processed_usernames|
     next if uname == 'trial0928'
     org_slug = /(.*?)\d+$/.match(uname)[1]
 
     begin
-      auto_ingest = get_dna(org_slug, 'ET.Importer.IngestionMode')
-      if auto_ingest.nil? || auto_ingest != 'AutoIngest'
-        auto_ingest = 0
-      else
-        auto_ingest = 1
-      end
-
-      Find.find("/home/#{uname}/uploads") do |path|
+      Find.find("#{conf[:upload_dir]}/#{uname}/uploads") do |path|
         begin
-          case path
-          when /.*\.csv$/i
-            process(org_slug, path, 'NONE', auto_ingest)
-            m << uname
-          when /.*\.gz$/i
-            process(org_slug, path, 'GZIP', auto_ingest)
-            m << uname
-          when /.*\.zip$/i
-            process(org_slug, path, 'ZIP', auto_ingest)
-            m << uname
-          end
+          compression_type = (
+            case path
+            when /.*\.csv$/i
+              'NONE'
+            when /.*\.gz$/i
+              'GZIP'
+            when /.*\.zip$/i
+              'ZIP'
+            else
+              next
+            end
+          )
+
+          uploaded = process(org_slug, path, compression_type)
+          processed_usernames << uname if uploaded
         rescue => e
-          puts "Error processing #{path}: #{e}"
+          puts "Error processing path #{path}: #{e}"
+          puts e.backtrace
         end
       end
     rescue => e
-      puts "Error processing #{org_slug}: #{e}"
+      puts "Error processing org #{org_slug}: #{e}"
+      puts e.backtrace
     end
   end
 

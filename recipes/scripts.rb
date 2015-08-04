@@ -37,7 +37,7 @@ end
   gem_package gem_pkg
 end
 
-%w(/opt/evertrue/upload /var/evertrue/uploads).each do |path|
+["#{node['et_upload']['base_dir']}/work_dir", '/opt/evertrue/scripts'].each do |path|
   directory path do
     owner 'root'
     group 'root'
@@ -73,7 +73,9 @@ settings = {
       aws_access_key_id:     node['et_upload']['aws_access_key_id'] || aws_access_key_id,
       aws_secret_access_key: node['et_upload']['aws_secret_access_key'] || aws_secret_access_key,
       upload_app_key:        node['et_upload']['upload_app_key'] || upload_app_key,
-      upload_auth_token:     node['et_upload']['upload_auth_token'] || upload_auth_token
+      upload_auth_token:     node['et_upload']['upload_auth_token'] || upload_auth_token,
+      upload_dir:            "#{node['et_upload']['base_dir']}/users",
+      work_dir:              "#{node['et_upload']['base_dir']}/work_dir"
 }
 
 file "/opt/evertrue/config.yml" do
@@ -93,7 +95,7 @@ end
 %w(process_uploads
    generate_random_user_and_pass
    show_uploads).each do |file|
-  cookbook_file "/opt/evertrue/upload/#{file}" do
+  cookbook_file "/opt/evertrue/scripts/#{file}" do
     mode 0755
   end
 end
@@ -105,7 +107,7 @@ mailto = 'sftp-uploader@evertrue.com'
 cron_d 'show_uploads' do
   minute  0
   hour    '*/4'
-  command '/opt/evertrue/upload/show_uploads'
+  command '/opt/evertrue/scripts/show_uploads'
   user    'root'
   shell   shell
   path    path
@@ -114,7 +116,7 @@ end
 
 cron_d 'process_uploads' do
   minute  0
-  command '/opt/evertrue/upload/process_uploads'
+  command '/opt/evertrue/scripts/process_uploads'
   user    'root'
   shell   shell
   path    path
@@ -124,7 +126,7 @@ end
 cron_d 'clean_uploads' do
   minute   15
   hour     0
-  command  'find /var/evertrue/uploads/* -mtime +7 -exec /bin/rm {} \;'
+  command  "find #{node['et_upload']['base_dir']}/work_dir/* -mtime +7 -exec /bin/rm {} \\;"
   user    'root'
   shell    shell
   path     path

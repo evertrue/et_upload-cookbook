@@ -4,6 +4,7 @@ require 'json'
 upload_users_file = File.open('/tmp/kitchen/data_bags/users/upload.json').read
 upload_users = JSON.parse(upload_users_file)
   .select { |uname, conf| uname != 'id' && !conf['mock'] && conf['action'] != 'remove' }
+upload_dir = '/opt/evertrue/users'
 
 describe 'SSH Service' do
   %w(22 43827).each do |port|
@@ -53,7 +54,7 @@ describe 'Upload Scripts' do
     end
   end
 
-  %w(/opt/evertrue/upload /var/evertrue/uploads).each do |path|
+  %w(/opt/evertrue/scripts /opt/evertrue/work_dir).each do |path|
     describe file(path) do
       it { is_expected.to be_directory }
       it { is_expected.to be_owned_by 'root' }
@@ -61,7 +62,7 @@ describe 'Upload Scripts' do
     end
   end
 
-  scripts_path = '/opt/evertrue/upload'
+  scripts_path = '/opt/evertrue/scripts'
   shell        = '/bin/bash'
   path         = '/sbin:/bin:/usr/sbin:/usr/bin'
   mailto       = 'sftp-uploader@evertrue.com'
@@ -129,14 +130,14 @@ describe 'Upload Scripts' do
       subject { super().content }
       it do
         is_expected.to include(
-          '15 0 * * * root find /var/evertrue/uploads/* -mtime +7 -exec /bin/rm {} \;'
+          '15 0 * * * root find /opt/evertrue/work_dir/* -mtime +7 -exec /bin/rm {} \\;'
         )
       end
     end
   end
 
   %w(process_uploads.rb generate_random_user_and_pass.sh show_uploads.sh).each do |script|
-    describe file("/opt/evertrue/upload/#{script}") do
+    describe file("/opt/evertrue/scripts/#{script}") do
       it { is_expected.to_not be_file }
     end
   end
@@ -148,7 +149,7 @@ describe 'Upload users' do
   end
 
   upload_users.each do |uname, u|
-    home = "/home/#{uname}"
+    home = "#{upload_dir}/#{uname}"
     gid = 'uploadonly'
 
     describe user(uname) do
@@ -194,9 +195,9 @@ describe 'Process uploads' do
     its(:exit_status) { should eq 0 }
   end
 
-  describe command('/opt/evertrue/upload/process_uploads') do
+  describe command('/opt/evertrue/scripts/process_uploads') do
     its(:exit_status) { should eq 0 }
-    its(:stdout) { should match 'sent file /home/amherst4451/uploads/test_gifts_file.gifts.csv for processing' }
+    its(:stdout) { should match 'sent file /opt/evertrue/users/amherst4451/uploads/test_gifts_file.gifts.csv for processing' }
     upload_users.each { |uname, _u| its(:stdout) { should match "Uploaded data from: #{uname}" } }
   end
 
@@ -204,9 +205,9 @@ describe 'Process uploads' do
     its(:exit_status) { should eq 0 }
   end
 
-  describe command('/opt/evertrue/upload/process_uploads') do
+  describe command('/opt/evertrue/scripts/process_uploads') do
     its(:exit_status) { should eq 0 }
-    its(:stdout) { should match 'sent file /home/amherst4451/uploads/test_contacts_file.csv for processing' }
+    its(:stdout) { should match 'sent file /opt/evertrue/users/amherst4451/uploads/test_contacts_file.csv for processing' }
     upload_users.each { |uname, _u| its(:stdout) { should match "Uploaded data from: #{uname}" } }
   end
 end

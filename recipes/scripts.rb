@@ -37,7 +37,7 @@ end
   gem_package gem_pkg
 end
 
-["#{node['et_upload']['base_dir']}/work_dir", '/opt/evertrue/scripts'].each do |path|
+["#{node['et_upload']['base_dir']}/archive_dir", '/opt/evertrue/scripts'].each do |path|
   directory path do
     owner 'root'
     group 'root'
@@ -75,7 +75,7 @@ settings = {
       upload_app_key:        node['et_upload']['upload_app_key'] || upload_app_key,
       upload_auth_token:     node['et_upload']['upload_auth_token'] || upload_auth_token,
       upload_dir:            "#{node['et_upload']['base_dir']}/users",
-      work_dir:              "#{node['et_upload']['base_dir']}/work_dir"
+      archive_dir:              "#{node['et_upload']['base_dir']}/archive_dir"
 }
 
 file "/opt/evertrue/config.yml" do
@@ -126,7 +126,7 @@ end
 cron_d 'clean_uploads' do
   minute   15
   hour     0
-  command  "find #{node['et_upload']['base_dir']}/work_dir/* -mtime +7 -exec /bin/rm {} \\;"
+  command  "find #{node['et_upload']['base_dir']}/archive_dir/* -mtime +7 -exec /bin/rm {} \\;"
   user    'root'
   shell    shell
   path     path

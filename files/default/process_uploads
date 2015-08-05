@@ -178,7 +178,7 @@ def process(org_slug, path, compression)
 
   FileUtils.chmod(0700, compressed_path)
   FileUtils.chown('root', 'root', compressed_path)
-  FileUtils.mv(compressed_path, conf[:work_dir])
+  FileUtils.mv(compressed_path, conf[:archive_dir])
 
   uploaded
 end

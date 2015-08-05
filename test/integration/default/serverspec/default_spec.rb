@@ -54,7 +54,7 @@ describe 'Upload Scripts' do
     end
   end
 
-  %w(/opt/evertrue/scripts /opt/evertrue/work_dir).each do |path|
+  %w(/opt/evertrue/scripts /opt/evertrue/archive_dir).each do |path|
     describe file(path) do
       it { is_expected.to be_directory }
       it { is_expected.to be_owned_by 'root' }
@@ -130,7 +130,7 @@ describe 'Upload Scripts' do
       subject { super().content }
       it do
         is_expected.to include(
-          '15 0 * * * root find /opt/evertrue/work_dir/* -mtime +7 -exec /bin/rm {} \\;'
+          '15 0 * * * root find /opt/evertrue/archive_dir/* -mtime +7 -exec /bin/rm {} \\;'
         )
       end
     end

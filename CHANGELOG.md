@@ -2,6 +2,11 @@ et_upload cookbook CHANGELOG
 ============================
 This file is used to list changes made in each version of the et_upload cookbook.
 
+v2.2.1 (2015-08-05)
+-------------------
+
+* `s/work_dir/archive_dir/`
+
 v2.2.0 (2015-08-05)
 -------------------
 

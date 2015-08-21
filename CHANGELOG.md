@@ -2,6 +2,12 @@ et_upload cookbook CHANGELOG
 ============================
 This file is used to list changes made in each version of the et_upload cookbook.
 
+v2.2.2 (2015-08-21)
+-------------------
+
+* Resolve script error that prevents DNA updates for unrecognized csv
+  headers
+
 v2.2.1 (2015-08-05)
 -------------------
 

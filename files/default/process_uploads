@@ -169,7 +169,7 @@ def process(org_slug, path, compression)
     end
   else
     data = { 'value' => 'NotifyOnly' }
-    post_to_api(conf[:api_url] + '/dna/setting_values/ET.Importer.IngestionMode' + auth_oid_query_string(oid), data, method: put)
+    post_to_api(conf[:api_url] + '/dna/setting_values/ET.Importer.IngestionMode' + auth_oid_query_string(oid), data, method: 'put')
 
     puts "Error processing #{path} for #{org_slug}: CSV headers not recognized"
   end

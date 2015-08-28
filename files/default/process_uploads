@@ -67,7 +67,7 @@ end
 
 def get_dna(org_slug, key)
   get_from_api(conf[:api_url] + "/1.0/#{org_slug}/dna/#{key}")['response']['data']
-rescue Exception => e
+rescue => e
   puts "Error sending org_slug: #{org_slug}"
   puts e.message
   puts e.backtrace
@@ -87,7 +87,7 @@ end
 
 def get_oid(org_slug)
   get_from_api(conf[:api_url] + "/auth/organizations/slug/#{org_slug}" + auth_query_string)['id']
-rescue Exception => e
+rescue => e
   puts "Error sending org_slug: #{org_slug}"
   puts e.message
   puts e.backtrace
@@ -98,7 +98,7 @@ def get_header_change_status_from_importer(oid, s3_filename, compression, gift_i
   data['type'] = 'TRANSACTIONAL_CSV' if gift_import
 
   post_to_api(conf[:api_url] + '/importer/v1/jobs/mapping_check' + auth_oid_query_string(oid), data)['mapping_exists']
-rescue Exception => e
+rescue => e
   puts "Error sending oid: #{oid}, s3_filename: #{s3_filename}"
   puts e.message
   puts e.backtrace
@@ -114,7 +114,7 @@ def post_to_new_importer(oid, s3_filename, compression, full_import, gift_import
   end
 
   post_to_api(conf[:api_url] + '/importer/v1/jobs' + auth_oid_query_string(oid), data)['id']
-rescue Exception => e
+rescue => e
   puts "Error sending oid: #{oid}, s3_filename: #{s3_filename}"
   puts e.message
   puts e.backtrace
@@ -122,7 +122,7 @@ end
 
 def queue_to_new_importer(oid, job_id)
   post_to_api(conf[:api_url] + "/importer/v1/jobs/queue/#{job_id}" + auth_oid_query_string(oid), {})
-rescue Exception => e
+rescue => e
   puts "Error queueing oid: #{oid}, job_id: #{job_id}"
   puts e.message
   puts e.backtrace

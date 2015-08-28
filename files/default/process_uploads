@@ -232,7 +232,7 @@ def process(org_slug, path, compression)
       method: 'put'
     )
 
-    msg = "CSV headers not recognized in file #{path} for #{org_slug}"
+    msg = "CSV headers not recognized in file #{path} for #{org_slug} (Job ID: #{job_id})"
     logger.warn msg
     email_notify msg
   end

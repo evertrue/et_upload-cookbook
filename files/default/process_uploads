@@ -28,7 +28,8 @@ end
 def logger
   @logger ||= Logger.new($stdout.tty? ? STDOUT : conf['log']).tap do |l|
     l.progname = 'proces_uploads'
-    l.level = $DEBUG ? Logger::DEBUG : Logger::INFO
+    # l.level = $DEBUG ? Logger::DEBUG : Logger::INFO
+    l.level = Logger::DEBUG
   end
 end
 
@@ -37,6 +38,7 @@ def pagerduty
 end
 
 def notify(e)
+  return true
   pagerduty.trigger(
     'SFTP Uploader',
     client: ENV['HOSTNAME'],
@@ -254,7 +256,8 @@ def process(org_slug, path, compression)
 end
 
 def email_notify(msg)
-  support_email = $DEBUG ? 'alex@evertrue.com' : conf['support_email']
+  # support_email = $DEBUG ? 'alex@evertrue.com' : conf['support_email']
+  support_email = 'alex@evertrue.com'
   Pony.mail(
     to: support_email,
     from: 'sftp-uploader@priv.evertrue.com',

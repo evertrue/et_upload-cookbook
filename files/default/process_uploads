@@ -323,7 +323,7 @@ def main
   end
 
   logger.info "Uploaded data from: #{processed_users.join(', ')}" unless processed_users.empty?
-rescue Interrupt
+rescue Interrupt => e
   logger.info "Received #{e.class}"
   exit 99
 rescue SignalException => e

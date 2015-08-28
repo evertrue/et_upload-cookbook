@@ -20,6 +20,7 @@
 %w(
   pagerduty
   sentry-raven
+  pony
 ).each do |pkg|
   gem_package pkg
 end

@@ -282,7 +282,7 @@ def main
 
     begin
       logger.debug 'Searching for files to upload'
-      Find.find("#{conf[:upload_dir]}/#{uname}/uploads") do |path|
+      Dir.glob("#{conf[:upload_dir]}/#{uname}/uploads/*") do |path|
         logger.debug "- #{path}"
         begin
           compression_type = (

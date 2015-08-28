@@ -183,7 +183,7 @@ def process(org_slug, path, compression)
   uploaded = false
 
   # Ensure that a file is not currently being uploaded
-  unless system("lsof #{Shellwords.shellescape path}")
+  if system("lsof #{Shellwords.shellescape path}")
     logger.warn "Skipped processing #{path} because it is in use"
     return uploaded
   end

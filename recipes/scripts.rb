@@ -68,17 +68,27 @@ upload_app_key    = upload_creds['app_key']
 upload_auth_token = upload_creds['auth_token']
 
 settings = {
-      api_url:               node['et_upload']['api_url'],
-      unames:                unames,
-      aws_access_key_id:     node['et_upload']['aws_access_key_id'] || aws_access_key_id,
-      aws_secret_access_key: node['et_upload']['aws_secret_access_key'] || aws_secret_access_key,
-      upload_app_key:        node['et_upload']['upload_app_key'] || upload_app_key,
-      upload_auth_token:     node['et_upload']['upload_auth_token'] || upload_auth_token,
-      upload_dir:            "#{node['et_upload']['base_dir']}/users",
-      archive_dir:              "#{node['et_upload']['base_dir']}/archive_dir"
+  api_url:               node['et_upload']['api_url'],
+  unames:                unames,
+  aws_access_key_id:     node['et_upload']['aws_access_key_id'] || aws_access_key_id,
+  aws_secret_access_key: node['et_upload']['aws_secret_access_key'] || aws_secret_access_key,
+  upload_app_key:        node['et_upload']['upload_app_key'] || upload_app_key,
+  upload_auth_token:     node['et_upload']['upload_auth_token'] || upload_auth_token,
+  upload_dir:            "#{node['et_upload']['base_dir']}/users",
+  archive_dir:           "#{node['et_upload']['base_dir']}/archive_dir",
+  log:                   '/var/log/process_uploads.log',
+  sentry_dsn:            data_bag_item('secrets', 'monitoring')['sentry']['dsn'],
+  pagerduty:             data_bag_item('secrets', 'api_keys')['pagerduty']['sftp_uploader']
 }
 
-file "/opt/evertrue/config.yml" do
+logrotate_app 'sftp_uploader' do
+  path      '/var/log/process_uploads.log'
+  frequency 'daily'
+  rotate    10
+  create    '644 root root'
+end
+
+file '/opt/evertrue/config.yml' do
   content settings.to_yaml
   mode 0600
 end

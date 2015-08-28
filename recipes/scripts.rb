@@ -21,9 +21,7 @@
   pagerduty
   sentry-raven
 ).each do |pkg|
-  gem_package pkg do
-    compile_time false
-  end
+  gem_package pkg
 end
 
 case node['platform_family']

@@ -153,10 +153,10 @@ def process(org_slug, path, compression)
   oid = get_oid(org_slug)
   s3_filename = send_to_s3(org_slug, path)
 
-  mappingExists = get_header_change_status_from_importer(oid, s3_filename, compression, gift_import)
+  mapping_exists = get_header_change_status_from_importer(oid, s3_filename, compression, gift_import)
   job_id = post_to_new_importer(oid, s3_filename, compression, full_import, gift_import)
 
-  if mappingExists
+  if mapping_exists
     auto_ingest_dna_value = get_dna(org_slug, 'ET.Importer.IngestionMode')
     auto_ingest = auto_ingest_dna_value.nil? || auto_ingest_dna_value != 'AutoIngest'
 

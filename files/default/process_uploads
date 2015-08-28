@@ -25,7 +25,7 @@ end
 
 def logger
   @logger ||= Logger.new($stdout.tty? ? STDOUT : conf['log']).tap do |l|
-    l.progname = 'proces_uploads'
+    l.progname = 'process_uploads'
     # l.level = $DEBUG ? Logger::DEBUG : Logger::INFO
     l.level = Logger::DEBUG
   end

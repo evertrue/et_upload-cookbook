@@ -17,6 +17,15 @@
 # limitations under the License.
 #
 
+%w(
+  pagerduty
+  sentry-raven
+).each do |pkg|
+  gem_package pkg do
+    compile_time false
+  end
+end
+
 case node['platform_family']
 when 'debian'
   include_recipe 'apt'

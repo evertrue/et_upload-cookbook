@@ -16,17 +16,42 @@ require 'zlib'
 require 'zip'
 require 'date'
 require 'yaml'
+require 'pagerduty'
+require 'sentry-raven'
+require 'logger'
+require 'pony'
 
 def conf
   @conf ||= YAML.load_file('/opt/evertrue/config.yml')
 end
 
+def logger
+  @logger ||= Logger.new($stdout.tty? ? STDOUT : conf['log']).tap do |l|
+    l.progname = 'proces_uploads'
+    l.level = $DEBUG ? Logger::DEBUG : Logger::INFO
+  end
+end
+
+def pagerduty
+  @pagerduty ||= Pagerduty.new conf['pagerduty_api_key']
+end
+
+def notify(e)
+  pagerduty.trigger(
+    'SFTP Uploader',
+    client: ENV['HOSTNAME'],
+    details: "#{e.message}\n\n#{e.backtrace}"
+  )
+
+  Raven.capture_exception(e) if conf['sentry_dsn']
+end
+
 def auth_oid_query_string(oid)
-  @auth_oid_query_string ||= "?oid=#{oid}&auth=#{conf[:upload_auth_token]}&auth_provider=evertrueapptoken&app_key=#{conf[:upload_app_key]}"
+  "?oid=#{oid}#{auth_query_string}"
 end
 
 def auth_query_string
-  @auth_query_string ||= "?auth=#{conf[:upload_auth_token]}&auth_provider=evertrueapptoken&app_key=#{conf[:upload_app_key]}"
+  "?auth=#{conf[:upload_auth_token]}&auth_provider=evertrueapptoken&app_key=#{conf[:upload_app_key]}"
 end
 
 def get_from_api(uri)
@@ -42,10 +67,12 @@ def get_from_api(uri)
   JSON.parse(response.body)
 end
 
-def post_to_api(uri, data, options = {})
+def send_to_api(uri, data, options = {})
   uri = URI.parse(URI.encode(uri))
   http = Net::HTTP.new(uri.host, uri.port)
   http.use_ssl = true
+
+  logger.debug "Sending to API: #{uri}\nData: #{data.inspect}\nOptions: #{options.inspect}"
 
   req = (if options[:method] == 'put'
            Net::HTTP::Put.new(uri.request_uri)
@@ -59,6 +86,9 @@ def post_to_api(uri, data, options = {})
   end
 
   response = http.request(req)
+
+  logger.debug "Received from API: #{response.inspect}"
+
   fail "Error posting to API, data: #{data.inspect}. Response: " \
        "#{response.code}, body: #{response.body}" unless response.code.to_i == 200
 
@@ -68,9 +98,8 @@ end
 def get_dna(org_slug, key)
   get_from_api(conf[:api_url] + "/1.0/#{org_slug}/dna/#{key}")['response']['data']
 rescue => e
-  puts "Error sending org_slug: #{org_slug}"
-  puts e.message
-  puts e.backtrace
+  logger.fatal "Error sending org_slug: #{org_slug}"
+  raise e
 end
 
 def send_to_s3(org_slug, path)
@@ -88,23 +117,28 @@ end
 def get_oid(org_slug)
   get_from_api(conf[:api_url] + "/auth/organizations/slug/#{org_slug}" + auth_query_string)['id']
 rescue => e
-  puts "Error sending org_slug: #{org_slug}"
-  puts e.message
-  puts e.backtrace
+  logger.fatal "Error sending org_slug: #{org_slug}"
+  raise e
 end
 
 def get_header_change_status_from_importer(oid, s3_filename, compression, gift_import)
   data = { 's3_filename' => s3_filename, 'notify' => 1, 'compression' => compression }
   data['type'] = 'TRANSACTIONAL_CSV' if gift_import
 
-  post_to_api(conf[:api_url] + '/importer/v1/jobs/mapping_check' + auth_oid_query_string(oid), data)['mapping_exists']
+  r = send_to_api(
+    conf[:api_url] +
+    "/importer/v1/jobs/mapping_check?oid=#{oid}#{auth_query_string}", data
+  )['mapping_exists']
+
+  logger.debug "Header change status: #{r.inspect} (class: #{r.class})"
+
+  r
 rescue => e
-  puts "Error sending oid: #{oid}, s3_filename: #{s3_filename}"
-  puts e.message
-  puts e.backtrace
+  logger.fatal "Error sending oid: #{oid}, s3_filename: #{s3_filename}"
+  raise e
 end
 
-def post_to_new_importer(oid, s3_filename, compression, full_import, gift_import)
+def post_to_importer(oid, s3_filename, compression, full_import, gift_import)
   data = { 's3_filename' => s3_filename, 'notify' => 1, 'compression' => compression }
 
   if gift_import
@@ -113,24 +147,16 @@ def post_to_new_importer(oid, s3_filename, compression, full_import, gift_import
     data['prune'] = full_import
   end
 
-  post_to_api(conf[:api_url] + '/importer/v1/jobs' + auth_oid_query_string(oid), data)['id']
+  send_to_api(conf[:api_url] + "/importer/v1/jobs?oid=#{oid}#{auth_query_string}", data)['id']
 rescue => e
-  puts "Error sending oid: #{oid}, s3_filename: #{s3_filename}"
-  puts e.message
-  puts e.backtrace
-end
-
-def queue_to_new_importer(oid, job_id)
-  post_to_api(conf[:api_url] + "/importer/v1/jobs/queue/#{job_id}" + auth_oid_query_string(oid), {})
-rescue => e
-  puts "Error queueing oid: #{oid}, job_id: #{job_id}"
-  puts e.message
-  puts e.backtrace
+  logger.fatal "Error sending oid: #{oid}, s3_filename: #{s3_filename}"
+  raise e
 end
 
 def compress_if_not_already(path, compression)
   return path if compression != 'NONE'
 
+  logger.debug "Compressing #{path}"
   Zlib::GzipWriter.open("#{path}.gz", Zlib::BEST_COMPRESSION) do |gz|
     gz.mtime = File.mtime(path)
     gz.orig_name = File.basename(path)
@@ -139,58 +165,128 @@ def compress_if_not_already(path, compression)
     end
   end
 
+  logger.debug("Removing original file: #{path}")
   FileUtils.rm(path)
-  "#{path}.gz"
+  f = "#{path}.gz"
+  logger.debug("Compressed file: #{f}")
+  f
+end
+
+def auto_ingest?(org_slug)
+  auto_ingest_dna_value = get_from_api(
+    conf[:api_url] +
+    "/1.0/#{org_slug}/dna/ET.Importer.IngestionMode"
+  )['response']['data']
+  logger.debug "auto_ingest_dna_value: #{auto_ingest_dna_value}"
+  auto_ingest_dna_value.nil? || (auto_ingest_dna_value != 'AutoIngest')
 end
 
 def process(org_slug, path, compression)
-  return unless `lsof #{Shellwords.shellescape path}`.empty?
   uploaded = false
 
+  # Ensure that a file is not currently being uploaded
+  unless system("lsof #{Shellwords.shellescape path}")
+    logger.warn "Skipped processing #{path} because it is in use"
+    return uploaded
+  end
+
   full_import = !(File.basename(path) =~ /\.full\./i).nil?
+  logger.debug "Full import? #{full_import}"
+
   gift_import = !(File.basename(path) =~ /\.gifts\./i).nil?
+  logger.debug "Gift import? #{gift_import}"
 
   oid = get_oid(org_slug)
-  s3_filename = send_to_s3(org_slug, path)
+  logger.debug "Got OID: #{oid}"
 
+  s3_filename = send_to_s3(org_slug, path)
+  logger.debug "S3 Filename: #{s3_filename}"
+
+  logger.debug 'Getting header change status from importer'
   mapping_exists = get_header_change_status_from_importer(oid, s3_filename, compression, gift_import)
-  job_id = post_to_new_importer(oid, s3_filename, compression, full_import, gift_import)
+  job_id = post_to_importer(oid, s3_filename, compression, full_import, gift_import)
+  logger.debug "Importer JOB ID: #{job_id}"
 
   if mapping_exists
-    auto_ingest_dna_value = get_dna(org_slug, 'ET.Importer.IngestionMode')
-    auto_ingest = auto_ingest_dna_value.nil? || auto_ingest_dna_value != 'AutoIngest'
-
-    if auto_ingest
-      puts "skipped auto-ingestion for #{org_slug}"
+    logger.debug 'Mapping exists'
+    if auto_ingest?(org_slug)
+      logger.info "Skipping auto-ingestion for #{org_slug}"
     else
-      queue_to_new_importer(oid, job_id)
+      # Queue the job with the importer
+      send_to_api(
+        conf[:api_url] +
+        "/importer/v1/jobs/queue/#{job_id}?oid=#{oid}#{auth_query_string}", {}
+      )
 
-      puts "sent file #{path} for processing"
+      logger.info "Queued file #{path} for processing"
       uploaded = true
     end
   else
+    logger.warn 'Mapping does not exist'
     data = { 'value' => 'NotifyOnly' }
-    post_to_api(conf[:api_url] + '/dna/setting_values/ET.Importer.IngestionMode' + auth_oid_query_string(oid), data, method: 'put')
 
-    puts "Error processing #{path} for #{org_slug}: CSV headers not recognized"
+    logger.debug 'Changing DNA value to NotifyOnly'
+
+    send_to_api(
+      conf[:api_url] +
+      "/dna/setting_values/ET.Importer.IngestionMode?oid=#{oid}#{auth_query_string}",
+      data,
+      method: 'put'
+    )
+
+    msg = "CSV headers not recognized in file #{path} for #{org_slug}"
+    logger.warn msg
+    email_notify msg
   end
 
   compressed_path = compress_if_not_already(path, compression)
 
+  logger.debug 'Changing compressed file ownership to 0700'
   FileUtils.chmod(0700, compressed_path)
+
+  logger.debug 'Changing compressed file ownership to root:root'
   FileUtils.chown('root', 'root', compressed_path)
+
+  logger.debug "Moving compressed file to #{conf[:archive_dir]}"
   FileUtils.mv(compressed_path, conf[:archive_dir])
 
   uploaded
 end
 
+def email_notify(msg)
+  support_email = $DEBUG ? 'alex@evertrue.com' : conf['support_email']
+  Pony.mail(
+    to: support_email,
+    from: 'sftp-uploader@priv.evertrue.com',
+    subject: 'SFTP Uploader Alert',
+    body: msg
+  )
+end
+
 def main
+  if conf['sentry_dsn']
+    Raven.configure do |config|
+      config.dsn = sentry_dsn
+      config.logger = logger
+    end
+  end
+
   processed_users = conf[:unames].each_with_object([]) do |uname, processed_usernames|
-    next if uname == 'trial0928'
+    logger.debug "Processing user #{uname}"
+
+    if uname == 'trial0928'
+      logger.debug 'Skipping trial user trial0928'
+      next
+    end
+
     org_slug = /(.*?)\d+$/.match(uname)[1]
 
+    logger.debug "Using org slug #{org_slug}"
+
     begin
+      logger.debug 'Searching for files to upload'
       Find.find("#{conf[:upload_dir]}/#{uname}/uploads") do |path|
+        logger.debug "- #{path}"
         begin
           compression_type = (
             case path
@@ -201,24 +297,46 @@ def main
             when /.*\.zip$/i
               'ZIP'
             else
+              logger.debug "Skipping unrecognized file #{path}"
               next
             end
           )
 
-          uploaded = process(org_slug, path, compression_type)
-          processed_usernames << uname if uploaded
+          logger.debug "Compression type: #{compression_type}"
+
+          if process(org_slug, path, compression_type)
+            logger.debug "File #{path} was processed successfully"
+            processed_usernames << uname
+          end
         rescue => e
-          puts "Error processing path #{path}: #{e}"
-          puts e.backtrace
+          logger.fatal "Error processing path #{path}: #{e}"
+          logger.fatal e.message
+          logger.fatal e.backtrace.join("\n")
+          notify e
         end
       end
     rescue => e
-      puts "Error processing org #{org_slug}: #{e}"
-      puts e.backtrace
+      logger.fatal "Error processing org #{org_slug}: #{e}"
+      logger.fatal e.message
+      logger.fatal e.backtrace.join("\n")
+      notify e
     end
   end
 
-  puts "Uploaded data from: #{processed_users.join(', ')}" unless processed_users.empty?
+  logger.info "Uploaded data from: #{processed_users.join(', ')}" unless processed_users.empty?
+rescue Interrupt
+  logger.info "Received #{e.class}"
+  exit 99
+rescue SignalException => e
+  logger.info "Received: #{e.signm} (#{e.signo})"
+  exit 2
+rescue SystemExit => e
+  exit e.status
+rescue Exception => e # Need to rescue "Exception" so that Sentry/PD gets it
+  notify e
+  logger.fatal e.message
+  logger.fatal e.backtrace.join("\n")
+  raise e
 end
 
 main

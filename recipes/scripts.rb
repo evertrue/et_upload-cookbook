@@ -87,7 +87,8 @@ settings = {
   archive_dir:           "#{node['et_upload']['base_dir']}/archive_dir",
   log:                   '/var/log/process_uploads.log',
   sentry_dsn:            data_bag_item('secrets', 'monitoring')['sentry']['dsn'],
-  pagerduty:             data_bag_item('secrets', 'api_keys')['pagerduty']['sftp_uploader']
+  pagerduty:             data_bag_item('secrets', 'api_keys')['pagerduty']['sftp_uploader'],
+  support_email:         node['et_upload']['support_email']
 }
 
 logrotate_app 'sftp_uploader' do

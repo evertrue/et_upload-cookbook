@@ -21,6 +21,7 @@
   pagerduty
   sentry-raven
   pony
+  trollop
 ).each do |pkg|
   gem_package pkg
 end

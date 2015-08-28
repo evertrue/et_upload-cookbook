@@ -18,6 +18,11 @@ require 'pagerduty'
 require 'sentry-raven'
 require 'logger'
 require 'pony'
+require 'trollop'
+
+def opts
+  @opts ||= Trollop.options { opt :debug, 'Debug mode', short: '-d' }
+end
 
 def conf
   @conf ||= YAML.load_file('/opt/evertrue/config.yml')
@@ -26,8 +31,7 @@ end
 def logger
   @logger ||= Logger.new($stdout.tty? ? STDOUT : conf['log']).tap do |l|
     l.progname = 'process_uploads'
-    # l.level = $DEBUG ? Logger::DEBUG : Logger::INFO
-    l.level = Logger::DEBUG
+    l.level = opts[:debug] ? Logger::DEBUG : Logger::INFO
   end
 end
 
@@ -250,8 +254,7 @@ def process(org_slug, path, compression)
 end
 
 def email_notify(msg)
-  # support_email = $DEBUG ? 'alex@evertrue.com' : conf['support_email']
-  support_email = 'alex@evertrue.com'
+  support_email = opts[:debug] ? 'alex@evertrue.com' : conf['support_email']
   Pony.mail(
     to: support_email,
     from: 'sftp-uploader@priv.evertrue.com',

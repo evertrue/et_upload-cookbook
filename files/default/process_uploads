@@ -48,12 +48,8 @@ def notify(e)
   Raven.capture_exception(e) if conf['sentry_dsn']
 end
 
-def auth_oid_query_string(oid)
-  "?oid=#{oid}#{auth_query_string}"
-end
-
 def auth_query_string
-  "?auth=#{conf[:upload_auth_token]}&auth_provider=evertrueapptoken&app_key=#{conf[:upload_app_key]}"
+  "auth=#{conf[:upload_auth_token]}&auth_provider=evertrueapptoken&app_key=#{conf[:upload_app_key]}"
 end
 
 def get_from_api(uri)
@@ -117,7 +113,7 @@ def send_to_s3(org_slug, path)
 end
 
 def get_oid(org_slug)
-  get_from_api(conf[:api_url] + "/auth/organizations/slug/#{org_slug}" + auth_query_string)['id']
+  get_from_api(conf[:api_url] + "/auth/organizations/slug/#{org_slug}?" + auth_query_string)['id']
 rescue => e
   logger.fatal "Error sending org_slug: #{org_slug}"
   raise e
@@ -129,7 +125,7 @@ def get_header_change_status_from_importer(oid, s3_filename, compression, gift_i
 
   r = send_to_api(
     conf[:api_url] +
-    "/importer/v1/jobs/mapping_check?oid=#{oid}#{auth_query_string}", data
+    "/importer/v1/jobs/mapping_check?oid=#{oid}&#{auth_query_string}", data
   )['mapping_exists']
 
   logger.debug "Header change status: #{r.inspect} (class: #{r.class})"
@@ -149,7 +145,7 @@ def post_to_importer(oid, s3_filename, compression, full_import, gift_import)
     data['prune'] = full_import
   end
 
-  send_to_api(conf[:api_url] + "/importer/v1/jobs?oid=#{oid}#{auth_query_string}", data)['id']
+  send_to_api(conf[:api_url] + "/importer/v1/jobs?oid=#{oid}&#{auth_query_string}", data)['id']
 rescue => e
   logger.fatal "Error sending oid: #{oid}, s3_filename: #{s3_filename}"
   raise e
@@ -217,7 +213,7 @@ def process(org_slug, path, compression)
       # Queue the job with the importer
       send_to_api(
         conf[:api_url] +
-        "/importer/v1/jobs/queue/#{job_id}?oid=#{oid}#{auth_query_string}", {}
+        "/importer/v1/jobs/queue/#{job_id}?oid=#{oid}&#{auth_query_string}", {}
       )
 
       logger.info "Queued file #{path} for processing"
@@ -231,7 +227,7 @@ def process(org_slug, path, compression)
 
     send_to_api(
       conf[:api_url] +
-      "/dna/setting_values/ET.Importer.IngestionMode?oid=#{oid}#{auth_query_string}",
+      "/dna/setting_values/ET.Importer.IngestionMode?oid=#{oid}&#{auth_query_string}",
       data,
       method: 'put'
     )

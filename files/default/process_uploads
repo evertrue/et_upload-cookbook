@@ -266,7 +266,7 @@ end
 def main
   if conf[:sentry_dsn]
     Raven.configure do |config|
-      config.dsn = sentry_dsn
+      config.dsn = conf[:sentry_dsn]
       config.logger = logger
     end
   end

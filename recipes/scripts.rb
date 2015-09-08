@@ -93,8 +93,8 @@ settings = {
 
 logrotate_app 'sftp_uploader' do
   path      '/var/log/process_uploads.log'
-  frequency 'daily'
-  rotate    10
+  frequency 'weekly'
+  rotate    5
   create    '644 root root'
 end
 

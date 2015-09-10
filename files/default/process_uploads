@@ -202,7 +202,7 @@ def process(org_slug, path, compression)
 
   if mapping_exists
     logger.debug 'Mapping exists'
-    if no_auto_ingest?(org_slug)
+    if no_auto_ingest?(oid)
       logger.info "Skipping auto-ingestion for #{org_slug}"
     else
       # Queue the job with the importer

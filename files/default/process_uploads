@@ -172,7 +172,7 @@ def compress_if_not_already(path, compression)
   f
 end
 
-def auto_ingest?(org_slug)
+def no_auto_ingest?(org_slug)
   auto_ingest_dna_value = get_from_api(
     conf[:api_url] +
     "/1.0/#{org_slug}/dna/ET.Importer.IngestionMode"
@@ -209,7 +209,7 @@ def process(org_slug, path, compression)
 
   if mapping_exists
     logger.debug 'Mapping exists'
-    if auto_ingest?(org_slug)
+    if no_auto_ingest?(org_slug)
       logger.info "Skipping auto-ingestion for #{org_slug}"
     else
       # Queue the job with the importer

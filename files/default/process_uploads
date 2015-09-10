@@ -95,13 +95,6 @@ def send_to_api(uri, data, options = {})
   JSON.parse(response.body)
 end
 
-def get_dna(org_slug, key)
-  get_from_api(conf[:api_url] + "/1.0/#{org_slug}/dna/#{key}")['response']['data']
-rescue => e
-  logger.fatal "Error sending org_slug: #{org_slug}"
-  raise e
-end
-
 def send_to_s3(org_slug, path)
   s3 = AWS::S3.new(
     access_key_id: conf[:aws_access_key_id],

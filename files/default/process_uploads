@@ -165,11 +165,11 @@ def compress_if_not_already(path, compression)
   f
 end
 
-def no_auto_ingest?(org_slug)
+def no_auto_ingest?(oid)
   auto_ingest_dna_value = get_from_api(
     conf[:api_url] +
-    "/1.0/#{org_slug}/dna/ET.Importer.IngestionMode"
-  )['response']['data']
+    "/dna/setting_values/ET.Importer.IngestionMode?oid=#{oid}"
+  )['settings']['ET.Importer.IngestionMode']['value']
   logger.debug "auto_ingest_dna_value: #{auto_ingest_dna_value}"
   auto_ingest_dna_value.nil? || (auto_ingest_dna_value != 'AutoIngest')
 end

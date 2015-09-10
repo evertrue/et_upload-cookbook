@@ -168,7 +168,7 @@ end
 def no_auto_ingest?(oid)
   auto_ingest_dna_value = get_from_api(
     conf[:api_url] +
-    "/dna/setting_values/ET.Importer.IngestionMode?oid=#{oid}"
+    "/dna/setting_values/ET.Importer.IngestionMode?oid=#{oid}&#{auth_query_string}"
   )['settings']['ET.Importer.IngestionMode']['value']
   logger.debug "auto_ingest_dna_value: #{auto_ingest_dna_value}"
   auto_ingest_dna_value.nil? || (auto_ingest_dna_value != 'AutoIngest')

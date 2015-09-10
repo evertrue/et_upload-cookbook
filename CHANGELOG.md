@@ -2,6 +2,11 @@ et_upload cookbook CHANGELOG
 ============================
 This file is used to list changes made in each version of the et_upload cookbook.
 
+v2.3.4 (2015-09-10)
+-------------------
+
+* Fixes authentication issue when hitting new DNA endpoint
+
 v2.3.3 (2015-09-10)
 -------------------
 

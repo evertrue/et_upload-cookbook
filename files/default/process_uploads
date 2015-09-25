@@ -246,7 +246,7 @@ def process(org_slug, path, compression)
 end
 
 def email_notify(msg)
-  support_email = opts[:debug] ? 'alex@evertrue.com' : conf[:support_email]
+  support_email = opts[:debug] ? ENV['DEBUG_EMAIL'] : conf[:support_email]
   Pony.mail(
     to: support_email,
     from: 'sftp-uploader@priv.evertrue.com',
@@ -256,6 +256,8 @@ def email_notify(msg)
 end
 
 def main
+  fail 'DEBUG_EMAIL required in debug mode' if opts[:debug] && !ENV['DEBUG_EMAIL']
+
   if conf[:sentry_dsn]
     Raven.configure do |config|
       config.dsn = conf[:sentry_dsn]

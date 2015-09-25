@@ -40,7 +40,6 @@ def pagerduty
 end
 
 def notify(e)
-  return true
   pagerduty.trigger(
     'SFTP Uploader',
     client: ENV['HOSTNAME'],

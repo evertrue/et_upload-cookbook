@@ -2,6 +2,13 @@ et_upload cookbook CHANGELOG
 ============================
 This file is used to list changes made in each version of the et_upload cookbook.
 
+v2.3.5 (2015-09-25)
+-------------------
+
+* Re-enable pagerduty for the process uploads script
+* Send support emails to onboarding instead of Jenna
+* Use env var `DEBUG_EMAIL` instead of `alex@evertrue.com`
+
 v2.3.4 (2015-09-10)
 -------------------
 

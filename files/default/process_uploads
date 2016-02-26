@@ -89,7 +89,7 @@ def send_to_api(uri, data, options = {})
   logger.debug "Received from API: #{response.inspect}"
 
   fail "Error posting to API, data: #{data.inspect}. Response: " \
-       "#{response.code}, body: #{response.body}" unless response.code.to_i == 200
+    "#{response.code}, body: #{response.body}" unless [200, 400].include? response.code.to_i
 
   JSON.parse(response.body)
 end

@@ -2,6 +2,12 @@ et_upload cookbook CHANGELOG
 ============================
 This file is used to list changes made in each version of the et_upload cookbook.
 
+v2.3.6 (2016-02-26)
+-------------------
+
+* Don't fail the process_uploads script for API response codes of 400,
+  since it keeps other files from being processed
+
 v2.3.5 (2015-09-25)
 -------------------
 

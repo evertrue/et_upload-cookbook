@@ -211,3 +211,26 @@ describe 'Process uploads' do
     upload_users.each { |uname, _u| its(:stdout) { should match "Uploaded data from: #{uname}" } }
   end
 end
+
+describe 'Permissions' do
+  describe file('/etc/sudoers.d/converge_chef') do
+    describe '#content' do
+      subject { super().content }
+      it do
+        is_expected.to include(
+          '%evertrue ALL=(ALL) NOPASSWD:/usr/sbin/service chef-client restart
+%evertrue ALL=(ALL) NOPASSWD:/usr/bin/chef-client'
+        )
+      end
+    end
+  end
+
+  describe command('sudo -U jeremy -l') do
+    its(:stdout) do
+      is_expected.to include(
+        '(ALL) NOPASSWD: /usr/sbin/service chef-client restart
+    (ALL) NOPASSWD: /usr/bin/chef-client'
+      )
+    end
+  end
+end

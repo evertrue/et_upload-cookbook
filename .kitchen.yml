@@ -15,6 +15,7 @@ suites:
     run_list:
       - recipe[test::default]
       - recipe[et_upload::default]
+      - recipe[test::accounts]
     attributes:
       et_upload:
         api_url: "https://stage-api.evertrue.com"

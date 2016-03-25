@@ -30,3 +30,13 @@ include_recipe 'openssh::default'
 include_recipe 'et_upload::scripts'
 include_recipe 'et_upload::users'
 
+sudo 'converge_chef' do
+  group 'evertrue'
+  nopasswd true
+  commands(
+    [
+      '/usr/sbin/service chef-client restart',
+      '/usr/bin/chef-client'
+    ]
+  )
+end

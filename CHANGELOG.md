@@ -2,6 +2,11 @@ et_upload cookbook CHANGELOG
 ============================
 This file is used to list changes made in each version of the et_upload cookbook.
 
+v2.3.7 (2016-03-25)
+-------------------
+
+* Use sudo to allow group evertrue users to run chef-client and restart the service
+
 v2.3.6 (2016-02-26)
 -------------------
 

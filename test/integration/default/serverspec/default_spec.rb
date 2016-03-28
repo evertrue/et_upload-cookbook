@@ -42,7 +42,7 @@ describe 'SSH Service' do
 end
 
 describe 'Upload Scripts' do
-  %w(ruby1.9.1 ruby1.9.1-dev).each do |pkg|
+  %w(ruby2.0 ruby2.0-dev).each do |pkg|
     describe package(pkg) do
       it { is_expected.to be_installed }
     end

@@ -17,13 +17,19 @@
 # limitations under the License.
 #
 
+%w(ruby2.0 ruby2.0-dev).each do |pkg|
+  package pkg
+end
+
 %w(
   pagerduty
   sentry-raven
   pony
   trollop
 ).each do |pkg|
-  gem_package pkg
+  gem_package pkg do
+    gem_binary '/usr/bin/gem2.0'
+  end
 end
 
 case node['platform_family']
@@ -33,17 +39,16 @@ end
 
 include_recipe 'build-essential'
 
-%w(ruby1.9.1 ruby1.9.1-dev).each do |pkg|
-  package pkg
-end
-
 gem_package 'aws-sdk' do
+  gem_binary '/usr/bin/gem2.0'
   version '~> 1.0'
   action :upgrade
 end
 
 %w(rubyzip multipart-post).each do |gem_pkg|
-  gem_package gem_pkg
+  gem_package gem_pkg do
+    gem_binary '/usr/bin/gem2.0'
+  end
 end
 
 ["#{node['et_upload']['base_dir']}/archive_dir", '/opt/evertrue/scripts'].each do |path|

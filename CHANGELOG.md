@@ -2,6 +2,11 @@ et_upload cookbook CHANGELOG
 ============================
 This file is used to list changes made in each version of the et_upload cookbook.
 
+v3.0.0 (2016-03-28)
+-------------------
+
+* Upgrade to Ruby 2.0 for upload processing scripts
+
 v2.3.7 (2016-03-25)
 -------------------
 

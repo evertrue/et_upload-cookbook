@@ -247,8 +247,10 @@ end
 
 def email_notify(msg)
   support_email = opts[:debug] ? ENV['DEBUG_EMAIL'] : conf[:support_email]
+  onboarding_email = opts[:debug] ? ENV['DEBUG_EMAIL'] : conf[:onboarding_email]
+
   Pony.mail(
-    to: support_email,
+    to: support_email + "," + onboarding_email,
     from: 'sftp-uploader@priv.evertrue.com',
     subject: 'SFTP Uploader Alert',
     body: msg

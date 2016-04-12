@@ -2,6 +2,11 @@ et_upload cookbook CHANGELOG
 ============================
 This file is used to list changes made in each version of the et_upload cookbook.
 
+v3.0.1 (2016-4-12)
+------------------
+
+* Add email notification support for genius@evertrue.com
+
 v3.0.0 (2016-03-28)
 -------------------
 

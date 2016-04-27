@@ -2,6 +2,11 @@ et_upload cookbook CHANGELOG
 ============================
 This file is used to list changes made in each version of the et_upload cookbook.
 
+v3.0.2 (2016-4-12)
+------------------
+
+* Add support for full gift imports
+
 v3.0.1 (2016-4-12)
 ------------------
 

@@ -113,9 +113,13 @@ rescue => e
   raise e
 end
 
-def get_header_change_status_from_importer(oid, s3_filename, compression, gift_import)
+def get_header_change_status_from_importer(oid, s3_filename, compression, gift_import, interaction_import)
   data = { 's3_filename' => s3_filename, 'notify' => 1, 'compression' => compression }
-  data['type'] = 'TRANSACTIONAL_CSV' if gift_import
+  if gift_import
+    data['type'] = 'TRANSACTIONAL_CSV'
+  elsif interaction_import
+    data['type'] = 'NOTES_CSV'
+  end
 
   r = send_to_api(
     conf[:api_url] +
@@ -130,11 +134,13 @@ rescue => e
   raise e
 end
 
-def post_to_importer(oid, s3_filename, compression, full_import, gift_import)
+def post_to_importer(oid, s3_filename, compression, full_import, gift_import, interaction_import)
   data = { 's3_filename' => s3_filename, 'notify' => 1, 'compression' => compression }
 
   if gift_import
     data['type'] = 'TRANSACTIONAL_CSV'
+  elsif interaction_import
+    data['type'] = 'NOTES_CSV'
   end
 
   if full_import
@@ -190,6 +196,9 @@ def process(org_slug, path, compression)
   gift_import = !(File.basename(path) =~ /\.gifts\./i).nil?
   logger.debug "Gift import? #{gift_import}"
 
+  interaction_import = !(File.basename(path) =~ /\.interactions\./i).nil?
+  logger.debug "Interactions import? #{interaction_import}"
+
   oid = get_oid(org_slug)
   logger.debug "Got OID: #{oid}"
 
@@ -197,8 +206,8 @@ def process(org_slug, path, compression)
   logger.debug "S3 Filename: #{s3_filename}"
 
   logger.debug 'Getting header change status from importer'
-  mapping_exists = get_header_change_status_from_importer(oid, s3_filename, compression, gift_import)
-  job_id = post_to_importer(oid, s3_filename, compression, full_import, gift_import)
+  mapping_exists = get_header_change_status_from_importer(oid, s3_filename, compression, gift_import, interaction_import)
+  job_id = post_to_importer(oid, s3_filename, compression, full_import, gift_import, interaction_import)
   logger.debug "Importer JOB ID: #{job_id}"
 
   if mapping_exists

@@ -2,6 +2,11 @@ et_upload cookbook CHANGELOG
 ============================
 This file is used to list changes made in each version of the et_upload cookbook.
 
+v3.0.3 (2016-6-28)
+------------------
+
+* Add support for interaction imports
+
 v3.0.2 (2016-4-12)
 ------------------
 

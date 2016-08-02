@@ -36,7 +36,7 @@ def logger
 end
 
 def pagerduty
-  @pagerduty ||= Pagerduty.new conf[:pagerduty_api_key]
+  @pagerduty ||= Pagerduty.new conf[:pagerduty]
 end
 
 def notify(e)

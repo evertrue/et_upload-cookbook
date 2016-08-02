@@ -2,6 +2,11 @@ et_upload cookbook CHANGELOG
 ============================
 This file is used to list changes made in each version of the et_upload cookbook.
 
+v3.0.4 (2016-7-02)
+------------------
+
+* Fix bug with pagerduty api key
+
 v3.0.3 (2016-6-28)
 ------------------
 

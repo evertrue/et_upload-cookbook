@@ -153,7 +153,7 @@ cron_d 'clean_uploads' do
   minute   15
   hour     0
   command  "find #{node['et_upload']['base_dir']}/archive_dir/* -mtime +7 -exec /bin/rm {} \\;"
-  user    'root'
+  user     'root'
   shell    shell
   path     path
 end

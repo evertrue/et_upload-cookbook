@@ -73,13 +73,13 @@ s3_creds = data_bag_item(
 aws_access_key_id     = s3_creds['access_key_id']
 aws_secret_access_key = s3_creds['secret_access_key']
 
-upload_creds = data_bag_item(
+importer_creds = data_bag_item(
   'secrets',
   'api_keys'
-)[node.chef_environment]['importer']['upload']
+)[node.chef_environment]['importer']
 
-upload_app_key    = upload_creds['app_key']
-upload_auth_token = upload_creds['auth_token']
+upload_app_key    = importer_creds['upload']['app_key']
+upload_auth_token = importer_creds['upload']['auth_token']
 
 settings = {
   api_url:               node['et_upload']['api_url'],
@@ -91,7 +91,7 @@ settings = {
   upload_dir:            "#{node['et_upload']['base_dir']}/users",
   archive_dir:           "#{node['et_upload']['base_dir']}/archive_dir",
   log:                   '/var/log/process_uploads.log',
-  sentry_dsn:            data_bag_item('secrets', 'monitoring')['sentry']['dsn'],
+  sentry_dsn:            importer_creds['sentry_dsn'],
   pagerduty:             data_bag_item('secrets', 'api_keys')['pagerduty']['sftp_uploader'],
   onboarding_email:      node['et_upload']['onboarding_email'],
   support_email:         node['et_upload']['support_email']
@@ -153,7 +153,7 @@ cron_d 'clean_uploads' do
   minute   15
   hour     0
   command  "find #{node['et_upload']['base_dir']}/archive_dir/* -mtime +7 -exec /bin/rm {} \\;"
-  user    'root'
+  user     'root'
   shell    shell
   path     path
 end

@@ -2,6 +2,11 @@ et_upload cookbook CHANGELOG
 ============================
 This file is used to list changes made in each version of the et_upload cookbook.
 
+v3.0.5 (2016-08-09)
+------------------
+
+* Have upload scripts use their own sentry dsn
+
 v3.0.4 (2016-7-01)
 ------------------
 

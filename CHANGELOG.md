@@ -2,6 +2,11 @@ et_upload cookbook CHANGELOG
 ============================
 This file is used to list changes made in each version of the et_upload cookbook.
 
+v3.0.6 (2016-09-20)
+------------------
+
+* Add reboot coordinator exemption
+
 v3.0.5 (2016-08-09)
 ------------------
 

@@ -44,3 +44,5 @@ set['openssh']['server']['match'] = {
     'allow_tcp_forwarding' => 'no'
   }
 }
+
+override['reboot_coordinator']['reboot_permitted'] = false

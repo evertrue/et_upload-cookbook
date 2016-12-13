@@ -2,6 +2,11 @@ et_upload cookbook CHANGELOG
 ============================
 This file is used to list changes made in each version of the et_upload cookbook.
 
+v3.0.7 (2016-12-13)
+------------------
+
+* Process uploads: Make sure the algorithm for REMOVING slug random numbers matches the one for adding them
+
 v3.0.6 (2016-09-20)
 ------------------
 

@@ -286,7 +286,7 @@ def main
       next
     end
 
-    org_slug = /(.*?)\d+$/.match(uname)[1]
+    org_slug = uname.sub(/\d{4,}$/, '')
 
     logger.debug "Using org slug #{org_slug}"
 

@@ -113,12 +113,14 @@ rescue => e
   raise e
 end
 
-def get_header_change_status_from_importer(oid, s3_filename, compression, gift_import, interaction_import)
+def get_header_change_status_from_importer(oid, s3_filename, compression, gift_import, interaction_import, proposal_import)
   data = { 's3_filename' => s3_filename, 'notify' => 1, 'compression' => compression }
   if gift_import
     data['type'] = 'TRANSACTIONAL_CSV'
   elsif interaction_import
     data['type'] = 'NOTES_CSV'
+  elsif proposal_import
+    data['type'] = 'PROPOSAL_CSV'
   end
 
   r = send_to_api(
@@ -134,13 +136,15 @@ rescue => e
   raise e
 end
 
-def post_to_importer(oid, s3_filename, compression, full_import, gift_import, interaction_import)
+def post_to_importer(oid, s3_filename, compression, full_import, gift_import, interaction_import, proposal_import)
   data = { 's3_filename' => s3_filename, 'notify' => 1, 'compression' => compression }
 
   if gift_import
     data['type'] = 'TRANSACTIONAL_CSV'
   elsif interaction_import
     data['type'] = 'NOTES_CSV'
+  elsif proposal_import
+    data['type'] = 'PROPOSAL_CSV'
   end
 
   if full_import
@@ -199,6 +203,9 @@ def process(org_slug, path, compression)
   interaction_import = !(File.basename(path) =~ /\.interactions\./i).nil?
   logger.debug "Interactions import? #{interaction_import}"
 
+  proposal_import = !(File.basename(path) =~ /\.proposals\./i).nil?
+  logger.debug "Proposals import? #{proposal_import}"
+
   oid = get_oid(org_slug)
   logger.debug "Got OID: #{oid}"
 
@@ -206,8 +213,8 @@ def process(org_slug, path, compression)
   logger.debug "S3 Filename: #{s3_filename}"
 
   logger.debug 'Getting header change status from importer'
-  mapping_exists = get_header_change_status_from_importer(oid, s3_filename, compression, gift_import, interaction_import)
-  job_id = post_to_importer(oid, s3_filename, compression, full_import, gift_import, interaction_import)
+  mapping_exists = get_header_change_status_from_importer(oid, s3_filename, compression, gift_import, interaction_import, proposal_import)
+  job_id = post_to_importer(oid, s3_filename, compression, full_import, gift_import, interaction_import, proposal_import)
   logger.debug "Importer JOB ID: #{job_id}"
 
   if mapping_exists

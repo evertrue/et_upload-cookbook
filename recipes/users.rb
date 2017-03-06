@@ -60,7 +60,7 @@ upload_users.each do |uname, u|
       action :create
     end
 
-    ["#{u['home']}/.ssh", "#{u['home']}/uploads"].each do |dir|
+    ["#{u['home']}/.ssh", "#{u['home']}/uploads", "#{u['home']}/exports"].each do |dir|
       directory dir do
         owner uname
         group u['gid']

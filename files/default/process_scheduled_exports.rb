@@ -24,6 +24,10 @@ def conf
   @conf ||= YAML.load_file('/opt/evertrue/config.yml')
 end
 
+def auth_query_string
+  "auth=#{conf[:upload_auth_token]}&auth_provider=evertrueapptoken&app_key=#{conf[:upload_app_key]}"
+end
+
 def logger
   @logger ||= Logger.new($stdout.tty? ?STDOUT : conf[:log]).tap do |l|
     l.progname = 'process_uploads'
@@ -63,24 +67,42 @@ rescue => e
   raise e
 end
 
-def process(org_slug)
+def process(uname, org_slug)
 
   oid = get_oid(org_slug)
   logger.debug "Got OID: #{oid}"
 
   exports = get_from_api(
     conf[:api_url] +
-    "contacts/v2/exports/latest-scheduled?oid=#{oid}"
+    "contacts/v2/exports/latest-scheduled?oid=#{oid}&#{auth_query_string}"
   )
   logger.debug "Retrieving Scheduled export for oid: #{oid}"
 
-  #For each export"
-    # read the "external path"
-    # read from that external path in s3
-    # rsync export file from s3 to sftp for current org
-  #repeat
+  exports.each do |export|
+    export_id = export["id"]
+    export_name = export["name"]
+    url = conf[:api_url] +
+    "contacts/v2/exports/#{export_id}?oid=#{oid}&#{auth_query_string}"
+    export_path = "#{conf[:upload_dir]}/#{uname}/exports/#{export_name}"
 
+    logger.info "Retrieving export from CAPI: #{url} and copying into SFTP "
+    logger.info "Export path: #{export_path} "
 
+    `wget "#{url}" --output-document "#{export_path}" --no-clobber`
+  end
+
+end
+
+def email_notify(msg)
+  support_email = opts[:debug] ? ENV['DEBUG_EMAIL'] : conf[:support_email]
+  onboarding_email = opts[:debug] ? ENV['DEBUG_EMAIL'] : conf[:onboarding_email]
+
+  Pony.mail(
+    to: support_email + "," + onboarding_email,
+    from: 'sftp-uploader@priv.evertrue.com',
+    subject: 'SFTP Uploader Alert',
+    body: msg
+  )
 end
 
 def main
@@ -98,7 +120,7 @@ def main
 
     logger.debug "Using org slug #{org_slug}"
 
-    if process(org_slug)
+    if process(uname, org_slug)
       logger.debug "File for #{org_slug} was processed successfully"
       processed_usernames << uname
     end

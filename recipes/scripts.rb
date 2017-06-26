@@ -149,6 +149,15 @@ cron_d 'process_uploads' do
   mailto  mailto
 end
 
+cron_d 'process_scheduled_exports' do
+  minute  0
+  command '/opt/evertrue/scripts/process_scheduled_exports'
+  user    'root'
+  shell   shell
+  path    path
+  mailto  mailto
+end
+
 cron_d 'clean_uploads' do
   minute   15
   hour     0

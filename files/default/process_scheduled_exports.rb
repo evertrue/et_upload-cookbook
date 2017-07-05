@@ -30,7 +30,7 @@ end
 
 def logger
   @logger ||= Logger.new($stdout.tty? ?STDOUT : conf[:log]).tap do |l|
-    l.progname = 'process_uploads'
+    l.progname = 'process_scheduled_export'
     l.level = opts[:debug] ? Logger::DEBUG : Logger::INFO
   end
 end

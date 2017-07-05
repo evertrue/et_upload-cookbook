@@ -10,11 +10,11 @@ require 'json'
 require 'zlib'
 require 'date'
 require 'yaml'
-require 'pagerduty'
 require 'sentry-raven'
 require 'logger'
 require 'pony'
 require 'trollop'
+require 'fileutils'
 
 def opts
   @opts ||= Trollop.options { opt :debug, 'Debug mode', short: '-d' }
@@ -85,10 +85,26 @@ def process(uname, org_slug)
     "/contacts/v2/exports/#{export_id}?oid=#{oid}&#{auth_query_string}"
     export_path = "#{conf[:upload_dir]}/#{uname}/exports/#{export_name}"
 
+    FileUtils.mkpath File.dirname export_path
+
     logger.info "Retrieving export from CAPI: #{url} and copying into SFTP "
     logger.info "Export path: #{export_path} "
 
-    `wget "#{url}" --output-document "#{export_path}" --no-clobber`
+    tmp_path = "#{conf[:upload_dir]}/tmp"
+    FileUtils.mkpath tmp_path
+
+    begin
+      response = Net::HTTP.get_response URI url
+
+      unless response.code == '200'
+        fail "Failed to download file. Code #{response.code}. Body:\n#{response.body}"
+      end
+
+      File.open(export_path, 'w') { |f| f.write response.body }
+      logger.info 'Unirest command succeeded'
+    rescue RuntimeError => e
+      logger.error "#{export_name} failed to download correctly because: #{e.message}"
+    end
   end
 
 end

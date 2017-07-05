@@ -50,7 +50,7 @@ end
 def get_from_api(uri)
   uri = URI.parse(URI.encode(uri))
 
-  http = Net::HTTP.new(uri.host, uri.post)
+  http = Net::HTTP.new(uri.host, uri.port)
   http.use_ssl = true
 
   req = Net::HTTP::Get.new(uri.request_uri)
@@ -74,15 +74,15 @@ def process(uname, org_slug)
 
   exports = get_from_api(
     conf[:api_url] +
-    "contacts/v2/exports/latest-scheduled?oid=#{oid}&#{auth_query_string}"
-  )
+    "/contacts/v2/exports/latest-scheduled?oid=#{oid}&#{auth_query_string}")
+
   logger.debug "Retrieving Scheduled export for oid: #{oid}"
 
   exports.each do |export|
     export_id = export["id"]
     export_name = export["name"]
     url = conf[:api_url] +
-    "contacts/v2/exports/#{export_id}?oid=#{oid}&#{auth_query_string}"
+    "/contacts/v2/exports/#{export_id}?oid=#{oid}&#{auth_query_string}"
     export_path = "#{conf[:upload_dir]}/#{uname}/exports/#{export_name}"
 
     logger.info "Retrieving export from CAPI: #{url} and copying into SFTP "

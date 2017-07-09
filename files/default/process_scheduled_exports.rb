@@ -25,7 +25,7 @@ def conf
 end
 
 def auth_query_string
-  "auth=#{conf[:chronometer_auth_token]}&auth_provider=evertrueapptoken&app_key=#{conf[:chronometer_app_key]}"
+  "auth=#{conf[:upload_auth_token]}&auth_provider=evertrueapptoken&app_key=#{conf[:upload_app_key]}"
 end
 
 def logger

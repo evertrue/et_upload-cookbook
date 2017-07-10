@@ -35,26 +35,10 @@ def logger
   end
 end
 
-def send_to_s3(org_slug, path)
-  s3 = AWS::S3.new(
-    access_key_id: conf[:aws_access_key_id],
-    secret_access_key: conf[:aws_secret_access_key]
-  )
-  bucket = s3.buckets['onboarding.evertrue.com']
-  now = DateTime.now.strftime('%Q')
-  s3_filename = "#{now}-#{File.basename(path)}"
-  bucket.objects["#{org_slug}/data/#{s3_filename}"].write(Pathname.new(path))
-  s3_filename
-end
-
 def get_from_api(uri)
   uri = URI.parse(URI.encode(uri))
 
-  http = Net::HTTP.new(uri.host, uri.port)
-  http.use_ssl = true
-
-  req = Net::HTTP::Get.new(uri.request_uri)
-  response = http.request(req)
+  response = Net::HTTP.get_response URI uri
   fail "API error, Response: #{response.code}, body: #{response.body}" unless response.code.to_i == 200
 
   JSON.parse(response.body)
@@ -67,7 +51,7 @@ rescue => e
   raise e
 end
 
-def process(uname, org_slug)
+def process(uname, org_slug)!
 
   oid = get_oid(org_slug)
   logger.debug "Got OID: #{oid}"
@@ -110,11 +94,11 @@ def process(uname, org_slug)
 end
 
 def email_notify(msg)
-  support_email = opts[:debug] ? ENV['DEBUG_EMAIL'] : conf[:support_email]
-  onboarding_email = opts[:debug] ? ENV['DEBUG_EMAIL'] : conf[:onboarding_email]
+  recipients =
+    opts[:debug] ? ENV['DEBUG_EMAIL'] : [conf[:support_email], conf[:onboarding_email]].join(',')
 
   Pony.mail(
-    to: support_email + "," + onboarding_email,
+    to: recipients,
     from: 'sftp-uploader@priv.evertrue.com',
     subject: 'SFTP Uploader Alert',
     body: msg
@@ -122,9 +106,12 @@ def email_notify(msg)
 end
 
 def main
+
   fail 'DEBUG_EMAIL required in debug mode' if opts[:debug] && !ENV['DEBUG_EMAIL']
 
   processed_users = conf[:unames].each_with_object([]) do |uname, processed_usernames|
+
+    begin
     logger.debug "Processing user #{uname}"
 
     if uname == 'trial0928'
@@ -136,11 +123,13 @@ def main
 
     logger.debug "Using org slug #{org_slug}"
 
-    if process(uname, org_slug)
+      process(uname, org_slug)
       logger.debug "File for #{org_slug} was processed successfully"
       processed_usernames << uname
-    end
 
+    rescue RuntimeError => e
+      logger.error "Export failed because: #{e.message}"
+    end
   end
 end
 

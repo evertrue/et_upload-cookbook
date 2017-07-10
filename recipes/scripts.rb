@@ -152,8 +152,7 @@ end
 cron_d 'process_scheduled_exports' do
   minute  0
   command '/opt/evertrue/scripts/process_scheduled_exports'
-  user    'root'
-  shell   shell
+  shell   global_cron_settings
   path    path
   mailto  mailto
 end

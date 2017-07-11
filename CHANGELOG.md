@@ -2,6 +2,11 @@ et_upload cookbook CHANGELOG
 ============================
 This file is used to list changes made in each version of the et_upload cookbook.
 
+v5.0.3 (2017-07-11)
+------------------
+
+* Remove extension from process scheduled export.
+
 v5.0.2 (2017-07-11)
 ------------------
 

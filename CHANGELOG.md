@@ -2,6 +2,11 @@ et_upload cookbook CHANGELOG
 ============================
 This file is used to list changes made in each version of the et_upload cookbook.
 
+v5.0.1 (2017-07-11)
+------------------
+
+* Process Scheduled Exports: Add script to process latest scheduled exports from CAPI per org.
+
 v4.0.0 (2017-01-25)
 ------------------
 

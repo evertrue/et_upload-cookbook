@@ -126,42 +126,42 @@ end
   end
 end
 
-shell  = '/bin/bash'
-path   = '/sbin:/bin:/usr/sbin:/usr/bin'
-mailto = 'sftp-uploader@evertrue.com'
+global_cron_settings = {
+  shell: '/bin/bash'
+  path: '/sbin:/bin:/usr/sbin:/usr/bin'
+  mailto: 'sftp-uploader@evertrue.com'
+}
 
 cron_d 'show_uploads' do
   minute  0
   hour    '*/4'
   command '/opt/evertrue/scripts/show_uploads'
-  user    'root'
-  shell   shell
-  path    path
-  mailto  mailto
+  shell   global_cron_settings[:shell]
+  path    global_cron_settings[:path]
+  mailto  global_cron_settings[:mailto]
 end
 
 cron_d 'process_uploads' do
   minute  0
   command '/opt/evertrue/scripts/process_uploads'
-  user    'root'
-  shell   shell
-  path    path
-  mailto  mailto
+  shell   global_cron_settings[:shell]
+  path    global_cron_settings[:path]
+  mailto  global_cron_settings[:mailto]
 end
 
 cron_d 'process_scheduled_exports' do
   minute  0
   command '/opt/evertrue/scripts/process_scheduled_exports'
-  shell   global_cron_settings
-  path    path
-  mailto  mailto
+  shell   global_cron_settings[:shell]
+  path    global_cron_settings[:path]
+  mailto  global_cron_settings[:mailto]
 end
 
 cron_d 'clean_uploads' do
   minute   15
   hour     0
   command  "find #{node['et_upload']['base_dir']}/archive_dir/* -mtime +7 -exec /bin/rm {} \\;"
-  user     'root'
-  shell    shell
-  path     path
+  shell    global_cron_settings[:shell]
+  path     global_cron_settings[:path]
+  mailto   global_cron_settings[:mailto]
 end

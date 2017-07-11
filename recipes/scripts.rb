@@ -150,7 +150,7 @@ cron_d 'process_uploads' do
 end
 
 cron_d 'process_scheduled_exports' do
-  minute  0
+  minute  '*/10'
   command '/opt/evertrue/scripts/process_scheduled_exports'
   shell   global_cron_settings[:shell]
   path    global_cron_settings[:path]

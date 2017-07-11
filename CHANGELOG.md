@@ -2,6 +2,11 @@ et_upload cookbook CHANGELOG
 ============================
 This file is used to list changes made in each version of the et_upload cookbook.
 
+v5.0.5 (2017-07-11)
+------------------
+
+* Log scheduled export to a different file
+
 v5.0.4 (2017-07-11)
 ------------------
 
@@ -257,7 +262,7 @@ v1.4.0
 - Refactor scripts to only search users based on upload users data bag item content
 - Fix FC023 in `et_upload::users`
 - Add installation of Ruby 1.9.1 & aws-sdk RubyGem
-    - Paves way forward for using Ruby for scripts instead of Bash
+	- Paves way forward for using Ruby for scripts instead of Bash
 - Add ChefSpec & ServerSpec tests for newly created functionality
 
 v1.3.1

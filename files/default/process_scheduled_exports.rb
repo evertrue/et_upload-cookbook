@@ -16,6 +16,8 @@ require 'pony'
 require 'trollop'
 require 'fileutils'
 
+TRIAL_USER_SLUG = 'trial0928'.freeze
+
 def opts
   @opts ||= Trollop.options { opt :debug, 'Debug mode', short: '-d' }
 end
@@ -51,7 +53,7 @@ rescue => e
   raise e
 end
 
-def process(uname, org_slug)!
+def process!(uname, org_slug)
 
   oid = get_oid(org_slug)
   logger.debug "Got OID: #{oid}"
@@ -113,8 +115,8 @@ def main
     begin
       logger.debug "Processing user #{uname}"
 
-      if uname == 'trial0928'
-        logger.debug 'Skipping trial user trial0928'
+      if TRIAL_USER_SLUG && uname == TRIAL_USER_SLUG
+        logger.debug "Skipping trial user #{TRIAL_USER_SLUG}"
         next
       end
 
@@ -122,7 +124,7 @@ def main
 
       logger.debug "Using org slug #{org_slug}"
 
-      process(uname, org_slug)
+      process!(uname, org_slug)
       logger.debug "File for #{org_slug} was processed successfully"
       processed_usernames << uname
 

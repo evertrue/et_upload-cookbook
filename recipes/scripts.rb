@@ -127,8 +127,8 @@ end
 end
 
 global_cron_settings = {
-  shell: '/bin/bash'
-  path: '/sbin:/bin:/usr/sbin:/usr/bin'
+  shell: '/bin/bash',
+  path: '/sbin:/bin:/usr/sbin:/usr/bin',
   mailto: 'sftp-uploader@evertrue.com'
 }
 

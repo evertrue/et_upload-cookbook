@@ -120,7 +120,7 @@ end
 
 %w(process_uploads
    generate_random_user_and_pass
-   show_uploads).each do |file|
+   show_uploads process_scheduled_exports).each do |file|
   cookbook_file "/opt/evertrue/scripts/#{file}" do
     mode 0755
   end

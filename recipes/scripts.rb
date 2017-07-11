@@ -165,3 +165,12 @@ cron_d 'clean_uploads' do
   path     global_cron_settings[:path]
   mailto   global_cron_settings[:mailto]
 end
+
+cron_d 'clean_scheduled_exports' do
+  minute   15
+  hour     0
+  command  "find #{node['et_upload']['base_dir']}/users/*/exports -mtime +90 -exec /bin/rm {} \\;"
+  shell    global_cron_settings[:shell]
+  path     global_cron_settings[:path]
+  mailto   global_cron_settings[:mailto]
+end

@@ -2,6 +2,12 @@ et_upload cookbook CHANGELOG
 ============================
 This file is used to list changes made in each version of the et_upload cookbook.
 
+v5.0.4 (2017-07-11)
+------------------
+
+* Run scheduled export job every 10 minutes 
+* Clean scheduled export every 90 days
+
 v5.0.3 (2017-07-11)
 ------------------
 

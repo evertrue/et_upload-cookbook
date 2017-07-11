@@ -58,7 +58,7 @@ def process(uname, org_slug)!
 
   exports = get_from_api(
     conf[:api_url] +
-    "/contacts/v2/exports/latest-scheduled?oid=#{oid}&#{auth_query_string}")
+  "/contacts/v2/exports/latest-scheduled?oid=#{oid}&#{auth_query_string}")
 
   logger.debug "Retrieving Scheduled export for oid: #{oid}"
 
@@ -66,8 +66,8 @@ def process(uname, org_slug)!
     export_id = export["id"]
     export_name = export["name"]
     url = conf[:api_url] +
-    "/contacts/v2/exports/#{export_id}?oid=#{oid}&#{auth_query_string}"
-    export_path = "#{conf[:upload_dir]}/#{uname}/exports/#{export_name}"
+      "/contacts/v2/exports/#{export_id}?oid=#{oid}&#{auth_query_string}"
+      export_path = "#{conf[:upload_dir]}/#{uname}/exports/#{export_name}"
 
     FileUtils.mkpath File.dirname export_path
 
@@ -106,22 +106,21 @@ def email_notify(msg)
 end
 
 def main
-
   fail 'DEBUG_EMAIL required in debug mode' if opts[:debug] && !ENV['DEBUG_EMAIL']
 
   processed_users = conf[:unames].each_with_object([]) do |uname, processed_usernames|
 
     begin
-    logger.debug "Processing user #{uname}"
+      logger.debug "Processing user #{uname}"
 
-    if uname == 'trial0928'
-      logger.debug 'Skipping trial user trial0928'
-      next
-    end
+      if uname == 'trial0928'
+        logger.debug 'Skipping trial user trial0928'
+        next
+      end
 
-    org_slug = uname.sub(/\d{4,}$/, '')
+      org_slug = uname.sub(/\d{4,}$/, '')
 
-    logger.debug "Using org slug #{org_slug}"
+      logger.debug "Using org slug #{org_slug}"
 
       process(uname, org_slug)
       logger.debug "File for #{org_slug} was processed successfully"

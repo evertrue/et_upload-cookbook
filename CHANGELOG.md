@@ -2,6 +2,11 @@ et_upload cookbook CHANGELOG
 ============================
 This file is used to list changes made in each version of the et_upload cookbook.
 
+v5.1.1 (2017-08-11)
+------------------
+
+* Add special exception for yale
+
 v5.1.0 (2017-08-11)
 ------------------
 
@@ -15,7 +20,7 @@ v5.0.5 (2017-07-11)
 v5.0.4 (2017-07-11)
 ------------------
 
-* Run scheduled export job every 10 minutes 
+* Run scheduled export job every 10 minutes
 * Clean scheduled export every 90 days
 
 v5.0.3 (2017-07-11)

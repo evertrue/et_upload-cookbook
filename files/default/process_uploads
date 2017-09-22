@@ -102,20 +102,12 @@ def send_to_s3(org_slug, path)
   bucket = s3.buckets['onboarding.evertrue.com']
   now = DateTime.now.strftime('%Q')
   s3_filename = "#{now}-#{File.basename(path)}"
-  if org_slug == 'yale'
-    bucket.objects["yaleuniversity/data/#{s3_filename}"].write(Pathname.new(path))
-  else
-    bucket.objects["#{org_slug}/data/#{s3_filename}"].write(Pathname.new(path))
-  end
+  bucket.objects["#{org_slug}/data/#{s3_filename}"].write(Pathname.new(path))
   s3_filename
 end
 
 def get_oid(org_slug)
-  org_lookup = org_slug
-  if org_slug == 'yale'
-    org_lookup = 'yaleuniversity'
-  end
-  get_from_api(conf[:api_url] + "/auth/organizations/slug/#{org_lookup}?" + auth_query_string)['id']
+  get_from_api(conf[:api_url] + "/auth/organizations/slug/#{org_slug}?" + auth_query_string)['id']
 rescue => e
   logger.fatal "Error sending org_slug: #{org_slug}"
   raise e
@@ -309,6 +301,9 @@ def main
     end
 
     org_slug = uname.sub(/\d{4,}$/, '')
+    if org_slug == 'yale'
+      org_slug = 'yaleuniversity'
+    end
 
     logger.debug "Using org slug #{org_slug}"
 

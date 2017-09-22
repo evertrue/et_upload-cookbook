@@ -301,6 +301,9 @@ def main
     end
 
     org_slug = uname.sub(/\d{4,}$/, '')
+    if org_slug == 'yale'
+      org_slug = 'yaleuniversity'
+    end
 
     logger.debug "Using org slug #{org_slug}"
 

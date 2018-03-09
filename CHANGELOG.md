@@ -2,6 +2,11 @@ et_upload cookbook CHANGELOG
 ============================
 This file is used to list changes made in each version of the et_upload cookbook.
 
+v5.1.2 (2018-03-03)
+------------------
+
+* Only download export once
+
 v5.1.1 (2017-08-11)
 ------------------
 

@@ -15,6 +15,7 @@ require 'logger'
 require 'pony'
 require 'trollop'
 require 'fileutils'
+require 'pathname'
 
 TRIAL_USER_SLUG = 'trial0928'.freeze
 
@@ -69,30 +70,34 @@ def process!(uname, org_slug)
     export_name = export["name"]
     url = conf[:api_url] +
       "/contacts/v2/exports/#{export_id}?oid=#{oid}&#{auth_query_string}"
-      export_path = "#{conf[:upload_dir]}/#{uname}/exports/#{export_name}"
+    export_path = "#{conf[:upload_dir]}/#{uname}/exports/#{export_name}"
 
-    FileUtils.mkpath File.dirname export_path
+    if !Pathname(export_path).exist?
+      FileUtils.mkpath File.dirname export_path
 
-    logger.info "Retrieving export from CAPI: #{url} and copying into SFTP "
-    logger.info "Export path: #{export_path} "
+      logger.info "Retrieving export from CAPI: #{url} and copying into SFTP "
+      logger.info "Export path: #{export_path} "
 
-    tmp_path = "#{conf[:upload_dir]}/tmp"
-    FileUtils.mkpath tmp_path
+      tmp_path = "#{conf[:upload_dir]}/tmp"
+      FileUtils.mkpath tmp_path
 
-    begin
-      response = Net::HTTP.get_response URI url
+      begin
+        response = Net::HTTP.get_response URI url
 
-      unless response.code == '200'
-        fail "Failed to download file. Code #{response.code}. Body:\n#{response.body}"
+        unless response.code == '200'
+          FileUtils.rm export_path, :force => true
+          fail "Failed to download file. Code #{response.code}. Body:\n#{response.body}"
+        end
+
+        File.open(export_path, 'w') { |f| f.write response.body }
+        logger.info 'Unirest command succeeded'
+      rescue RuntimeError => e
+        logger.error "#{export_name} failed to download correctly because: #{e.message}"
       end
-
-      File.open(export_path, 'w') { |f| f.write response.body }
-      logger.info 'Unirest command succeeded'
-    rescue RuntimeError => e
-      logger.error "#{export_name} failed to download correctly because: #{e.message}"
+    else
+      logger.info "file already exists skipping download of #{export_path}"
     end
   end
-
 end
 
 def email_notify(msg)

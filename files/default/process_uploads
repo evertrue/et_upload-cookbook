@@ -94,7 +94,17 @@ def send_to_api(uri, data, options = {})
   JSON.parse(response.body)
 end
 
-def send_to_s3(org_slug, path)
+def send_to_s3(org_slug, path, compression)
+  content_type = (
+  case compression
+  when 'NONE'
+    'text/csv'
+  when 'GZIP'
+     'application/gzip'
+  when 'ZIP'
+    'application/zip'
+  end)
+
   s3 = AWS::S3.new(
     access_key_id: conf[:aws_access_key_id],
     secret_access_key: conf[:aws_secret_access_key]
@@ -102,8 +112,8 @@ def send_to_s3(org_slug, path)
   bucket = s3.buckets['onboarding.evertrue.com']
   now = DateTime.now.strftime('%Q')
   s3_filename = "#{now}-#{File.basename(path)}"
-  bucket.objects["#{org_slug}/data/#{s3_filename}"].write(Pathname.new(path))
-  s3_filename
+  bucket.objects["#{org_slug}/data/#{s3_filename}"].write(Pathname.new(path),
+    :content_type => content_type)
 end
 
 def get_oid(org_slug)
@@ -216,7 +226,7 @@ def process(org_slug, path, compression)
   oid = get_oid(org_slug)
   logger.debug "Got OID: #{oid}"
 
-  s3_filename = send_to_s3(org_slug, path)
+  s3_filename = send_to_s3(org_slug, path, compression)
   logger.debug "S3 Filename: #{s3_filename}"
 
   logger.debug 'Getting header change status from importer'

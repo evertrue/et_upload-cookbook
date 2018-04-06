@@ -211,16 +211,16 @@ def process(org_slug, path, compression)
   full_import = !(File.basename(path) =~ /\.full\./i).nil?
   logger.debug "Full import? #{full_import}"
 
-  gift_import = !(File.basename(path) =~ /\.gifts\./i).nil?
+  gift_import = !(File.basename(path) =~ /\.gifts?\./i).nil?
   logger.debug "Gift import? #{gift_import}"
 
-  interaction_import = !(File.basename(path) =~ /\.interactions\./i).nil?
+  interaction_import = !(File.basename(path) =~ /\.interactions?\./i).nil?
   logger.debug "Interactions import? #{interaction_import}"
 
-  proposal_import = !(File.basename(path) =~ /\.proposals\./i).nil?
+  proposal_import = !(File.basename(path) =~ /\.proposals?\./i).nil?
   logger.debug "Proposals import? #{proposal_import}"
 
-  assignment_import = !(File.basename(path) =~ /\.assignments\./i).nil?
+  assignment_import = !(File.basename(path) =~ /\.assignments?\./i).nil?
   logger.debug "Assignments import? #{assignment_import}"
 
   oid = get_oid(org_slug)

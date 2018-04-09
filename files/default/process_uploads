@@ -114,6 +114,7 @@ def send_to_s3(org_slug, path, compression)
   s3_filename = "#{now}-#{File.basename(path)}"
   bucket.objects["#{org_slug}/data/#{s3_filename}"].write(Pathname.new(path),
     :content_type => content_type)
+  s3_filename
 end
 
 def get_oid(org_slug)

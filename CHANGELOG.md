@@ -2,6 +2,12 @@ et_upload cookbook CHANGELOG
 ============================
 This file is used to list changes made in each version of the et_upload cookbook.
 
+v5.1.5 (2018-04-09)
+------------------
+
+* Blake blew out a return statement for the s3_filename, put that back
+  in
+
 v5.1.3 (2018-03-19)
 ------------------
 

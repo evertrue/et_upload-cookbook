@@ -2,6 +2,11 @@ et_upload cookbook CHANGELOG
 ============================
 This file is used to list changes made in each version of the et_upload cookbook.
 
+v5.1.6 (2018-05-30)
+------------------
+
+* Give evertrue user permission to see inside upload users' home dir
+
 v5.1.5 (2018-04-09)
 ------------------
 

@@ -61,7 +61,13 @@ upload_users.each do |uname, u|
       action :create
     end
 
-    %w(.ssh uploads exports).each do |dir|
+    directory "#{u['home']}/.ssh" do
+      owner uname
+      group u['gid']
+      mode '0750'
+    end
+
+    %w(uploads exports).each do |dir|
       directory "#{u['home']}/#{dir}" do
         owner uname
         group evertrue_gid

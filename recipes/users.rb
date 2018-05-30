@@ -30,6 +30,7 @@ upload_users = data_bag_item('users', 'upload').select { |uname| uname != 'id' }
 upload_users.each do |uname, u|
   u['home'] = "#{node['et_upload']['base_dir']}/users/#{uname}"
   u['gid'] = 'uploadonly'
+  evertrue_gid = 'evertrue'
 
   if u['action'] == 'remove'
     user uname do
@@ -55,16 +56,16 @@ upload_users.each do |uname, u|
 
     directory u['home'] do
       owner 'root'
-      group u['gid']
-      mode '0755'
+      group evertrue_gid
+      mode '0750'
       action :create
     end
 
     %w(.ssh uploads exports).each do |dir|
       directory "#{u['home']}/#{dir}" do
         owner uname
-        group u['gid']
-        mode 0700
+        group evertrue_gid
+        mode '0750'
       end
     end
 

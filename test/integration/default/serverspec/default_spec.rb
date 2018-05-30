@@ -151,6 +151,7 @@ describe 'Upload users' do
   upload_users.each do |uname, u|
     home = "#{upload_dir}/#{uname}"
     gid = 'uploadonly'
+    evertrue_gid = 'evertrue'
 
     describe user(uname) do
       it { is_expected.to exist }
@@ -166,7 +167,7 @@ describe 'Upload users' do
 
     describe file(home) do
       it { is_expected.to be_directory }
-      it { is_expected.to be_mode 755 }
+      it { is_expected.to be_mode 750 }
       it { is_expected.to be_owned_by 'root' }
       it { is_expected.to be_grouped_into gid }
     end
@@ -184,7 +185,7 @@ describe 'Upload users' do
         it { is_expected.to be_directory }
         it { is_expected.to be_mode 700 }
         it { is_expected.to be_owned_by uname }
-        it { is_expected.to be_grouped_into gid }
+        it { is_expected.to be_grouped_into evertrue_gid }
       end
     end
   end

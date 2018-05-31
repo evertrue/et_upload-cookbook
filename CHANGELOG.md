@@ -2,6 +2,11 @@ et_upload cookbook CHANGELOG
 ============================
 This file is used to list changes made in each version of the et_upload cookbook.
 
+v5.1.8 (2018-05-31)
+------------------
+
+* Revert group change on the home dir
+
 v5.1.7 (2018-05-30)
 ------------------
 

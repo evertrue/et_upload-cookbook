@@ -167,7 +167,7 @@ describe 'Upload users' do
 
     describe file(home) do
       it { is_expected.to be_directory }
-      it { is_expected.to be_mode 750 }
+      it { is_expected.to be_mode 755 }
       it { is_expected.to be_owned_by 'root' }
       it { is_expected.to be_grouped_into gid }
     end

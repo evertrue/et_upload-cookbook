@@ -27,10 +27,10 @@ end
 
 upload_users = data_bag_item('users', 'upload').select { |uname| uname != 'id' }
 
+evertrue_gid = 'evertrue'
 upload_users.each do |uname, u|
   u['home'] = "#{node['et_upload']['base_dir']}/users/#{uname}"
   u['gid'] = 'uploadonly'
-  evertrue_gid = 'evertrue'
 
   if u['action'] == 'remove'
     user uname do
@@ -56,8 +56,8 @@ upload_users.each do |uname, u|
 
     directory u['home'] do
       owner 'root'
-      group evertrue_gid
-      mode '0750'
+      group u['gid']
+      mode '0755'
       action :create
     end
 

@@ -28,7 +28,7 @@ end
   trollop
 ).each do |pkg|
   gem_package pkg do
-    gem_binary '/usr/bin/gem2.0'
+    gem_binary '/usr/bin/gem2.2'
   end
 end
 
@@ -40,14 +40,14 @@ end
 include_recipe 'build-essential'
 
 gem_package 'aws-sdk' do
-  gem_binary '/usr/bin/gem2.0'
+  gem_binary '/usr/bin/gem2.2'
   version '~> 1.0'
   action :upgrade
 end
 
 %w(rubyzip multipart-post).each do |gem_pkg|
   gem_package gem_pkg do
-    gem_binary '/usr/bin/gem2.0'
+    gem_binary '/usr/bin/gem2.2'
   end
 end
 

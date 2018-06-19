@@ -180,10 +180,17 @@ describe 'Upload users' do
       end
     end
 
-    ["#{home}/.ssh", "#{home}/uploads"].each do |dir|
-      describe file(dir) do
+    describe file("#{home}/.ssh") do
         it { is_expected.to be_directory }
         it { is_expected.to be_mode 700 }
+        it { is_expected.to be_owned_by uname }
+        it { is_expected.to be_grouped_into gid }
+    end
+
+    ["#{home}/uploads", "#{home}/exports"].each do |dir|
+      describe file(dir) do
+        it { is_expected.to be_directory }
+        it { is_expected.to be_mode 770 }
         it { is_expected.to be_owned_by uname }
         it { is_expected.to be_grouped_into evertrue_gid }
       end

@@ -14,6 +14,7 @@ describe 'et_upload::default' do
 
     u['home'] = "/home/#{uname}"
     u['gid']  = 'uploadonly'
+    evertrue_gid = 'evertrue'
 
     it "creates user #{uname}" do
       expect(chef_run).to create_user(uname).with(
@@ -33,14 +34,21 @@ describe 'et_upload::default' do
       )
     end
 
-    ["#{u['home']}/.ssh", "#{u['home']}/uploads"].each do |dir|
-      mode = (uname == 'trial-user' && dir == "#{u['home']}/uploads") ? '0300' : '0700'
+    mode = (uname == 'trial-user') ? '0300' : '0700'
+    it "creates #{dir}" do
+      expect(chef_run).to create_directory(dir).with(
+        user:  uname,
+        group: u['gid'],
+        mode:  mode
+      )
+    end
 
+    ["#{u['home']}/uploads", "#{u['home']}/exports"].each do |dir|
       it "creates #{dir}" do
         expect(chef_run).to create_directory(dir).with(
           user:  uname,
-          group: u['gid'],
-          mode:  mode
+          group: evertrue_gid,
+          mode:  770
         )
       end
     end

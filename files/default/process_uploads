@@ -200,6 +200,25 @@ def no_auto_ingest?(oid)
   auto_ingest_dna_value.nil? || (auto_ingest_dna_value != 'AutoIngest')
 end
 
+def valid_zip_file?(file)
+  system("unzip -t #{Shellwords.escape(file)} > /dev/null 2> /dev/null")
+end
+
+def valid_gzip_file?(file)
+  system("gzip -t #{Shellwords.escape(file)} > /dev/null 2> /dev/null")
+end
+
+def valid_file?(file, compression)
+  case compression
+  when 'ZIP'
+    valid_zip_file?(file)
+  when 'GZIP'
+    valid_gzip_file?(file)
+  else
+    true
+  end
+end
+
 def process(org_slug, path, compression)
   uploaded = false
 
@@ -207,6 +226,12 @@ def process(org_slug, path, compression)
   if system("lsof #{Shellwords.shellescape path}")
     logger.warn "Skipped processing #{path} because it is in use"
     return uploaded
+  end
+
+  if ! valid_file?(path, compression)
+    msg = "Import file #{path} is not a valid #{compression} file"
+    logger.error msg
+    email_notify msg
   end
 
   full_import = !(File.basename(path) =~ /\.full\./i).nil?

@@ -2,6 +2,11 @@ et_upload cookbook CHANGELOG
 ============================
 This file is used to list changes made in each version of the et_upload cookbook.
 
+v5.1.11 (2018-12-21)
+------------------
+
+* Notify customer support about invalid zip files
+
 v5.1.10 (2018-06-19)
 ------------------
 

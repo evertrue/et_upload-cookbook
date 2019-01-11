@@ -150,8 +150,8 @@ cron_d 'show_uploads' do
 end
 
 cron_d 'process_uploads' do
-  minute  0
-  command '/opt/evertrue/scripts/process_uploads'
+  minute  '*/5'
+  command '/usr/bin/flock -w 0 /var/run/process_uploads.lock -c /opt/evertrue/scripts/process_uploads'
   shell   global_cron_settings[:shell]
   path    global_cron_settings[:path]
   mailto  global_cron_settings[:mailto]

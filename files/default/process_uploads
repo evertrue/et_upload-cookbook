@@ -19,6 +19,10 @@ require 'sentry-raven'
 require 'logger'
 require 'pony'
 require 'trollop'
+require 'digest/md5'
+require 'time'
+
+class NotFoundException < Exception; end
 
 def opts
   @opts ||= Trollop.options { opt :debug, 'Debug mode', short: '-d' }
@@ -61,7 +65,10 @@ def get_from_api(uri)
 
   req = Net::HTTP::Get.new(uri.request_uri)
   response = http.request(req)
-  fail "API error, Response: #{response.code}, body: #{response.body}" unless response.code.to_i == 200
+  unless response.code.to_i == 200
+    exception = response.code.to_i == 404 ? NotFoundException : RuntimeError
+    fail exception, "API error, Response: #{response.code}, body: #{response.body}"
+  end
 
   JSON.parse(response.body)
 end
@@ -219,6 +226,23 @@ def valid_file?(file, compression)
   end
 end
 
+def delete_missing_org_file(org_slug, path)
+  check_sum = Digest::MD5.file(path)
+
+  logger.info "Removing #{path}, #{org_slug} was not found, md5 #{check_sum}, uploaded on #{File.mtime(path).iso8601}"
+
+  FileUtils.rm(path)
+
+  body = <<STR
+Org #{org_slug} was not found.
+Removing uploaded file #{path}
+Uploaded on #{File.mtime(path).iso8601}
+MD5 #{check_sum}
+STR
+
+  email_notify(body)
+end
+
 def process(org_slug, path, compression)
   uploaded = false
 
@@ -249,7 +273,14 @@ def process(org_slug, path, compression)
   assignment_import = !(File.basename(path) =~ /\.assignments?\./i).nil?
   logger.debug "Assignments import? #{assignment_import}"
 
-  oid = get_oid(org_slug)
+  
+  oid =
+    begin
+      get_oid(org_slug)
+    rescue NotFoundException => e
+      delete_missing_org_file(org_slug, path)
+      raise e
+    end
   logger.debug "Got OID: #{oid}"
 
   s3_filename = send_to_s3(org_slug, path, compression)

@@ -2,6 +2,10 @@ et_upload cookbook CHANGELOG
 ============================
 This file is used to list changes made in each version of the et_upload cookbook.
 
+v5.1.14 (2019-01-11)
+------------------
+* Fix for capturing mtime before deleting file
+
 v5.1.13 (2019-01-11)
 ------------------
 * Remove files from orgs that are not found

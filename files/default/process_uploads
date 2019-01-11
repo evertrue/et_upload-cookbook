@@ -228,15 +228,16 @@ end
 
 def delete_missing_org_file(org_slug, path)
   check_sum = Digest::MD5.file(path)
+  mtime = File.mtime(path)
 
-  logger.info "Removing #{path}, #{org_slug} was not found, md5 #{check_sum}, uploaded on #{File.mtime(path).iso8601}"
+  logger.info "Removing #{path}, #{org_slug} was not found, md5 #{check_sum}, uploaded on #{mtime.iso8601}"
 
   FileUtils.rm(path)
 
   body = <<STR
 Org #{org_slug} was not found.
 Removing uploaded file #{path}
-Uploaded on #{File.mtime(path).iso8601}
+Uploaded on #{mtime.iso8601}
 MD5 #{check_sum}
 STR
 

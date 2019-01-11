@@ -2,6 +2,10 @@ et_upload cookbook CHANGELOG
 ============================
 This file is used to list changes made in each version of the et_upload cookbook.
 
+v5.1.12 (2019-01-11)
+------------------
+* Run process_uploads every 5 minutes
+
 v5.1.11 (2018-12-21)
 ------------------
 

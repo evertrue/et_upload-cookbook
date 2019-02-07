@@ -353,7 +353,7 @@ end
 def order_files_by_upload_time(files)
   files
     .select { |f| File.file?(f) } # filter out none files
-    .sort_by { |f| File.new(f).birthtime } # order by creation date
+    .sort_by { |f| File.ctime(f) } # order by creation date
 end
 
 def main

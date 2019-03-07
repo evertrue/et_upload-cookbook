@@ -142,7 +142,7 @@ def get_header_change_status_from_importer(oid, s3_filename, compression, gift_i
   elsif assignment_import
     data['type'] = 'ASSIGNMENT_CSV'
   elsif solicitor_import
-    data['type'] = 'SOLICITOR_CSV'
+    data['type'] = 'ASSIGNMENT_TEAM_CSV'
   end
 
   r = send_to_api(
@@ -170,7 +170,7 @@ def post_to_importer(oid, s3_filename, compression, full_import, gift_import, in
   elsif assignment_import
     data['type'] = 'ASSIGNMENT_CSV'
   elsif solicitor_import
-    data['type'] = 'SOLICITOR_CSV'
+    data['type'] = 'ASSIGNMENT_TEAM_CSV'
   end
 
   if full_import
@@ -278,7 +278,7 @@ def process(org_slug, path, compression)
   assignment_import = !(File.basename(path) =~ /\.assignments?\./i).nil?
   logger.debug "Assignments import? #{assignment_import}"
 
-  solicitor_import = !(File.basename(path) =~ /\.solicitors?\./).nil?
+  solicitor_import = !(File.basename(path) =~ /\.solicitors?\./i).nil?
   logger.debug "Solicitors import? #{solicitor_import}"
 
   oid =

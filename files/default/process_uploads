@@ -356,9 +356,11 @@ def email_notify(msg)
   )
 end
 
-def order_files_by_upload_time(files)
-  files
+def order_files_by_upload_time(base_dir)
+  # Identify all files found under uploads folders at any folder level
+  Dir.glob(base_dir + "/**/**")
     .select { |f| File.file?(f) } # filter out none files
+    .select { |path| path =~ /\/uploads\// } # only include files under the uploads path
     .sort_by { |f| File.ctime(f) } # order by creation date
 end
 
@@ -389,7 +391,7 @@ def main
 
     begin
       logger.debug 'Searching for files to upload'
-      order_files_by_upload_time(Dir.glob("#{conf[:upload_dir]}/#{uname}/uploads/*")).each do |path|
+      order_files_by_upload_time("#{conf[:upload_dir]}/#{uname}")).each do |path|
         logger.debug "- #{path}"
         begin
           compression_type = (

@@ -2,6 +2,10 @@ et_upload cookbook CHANGELOG
 ============================
 This file is used to list changes made in each version of the et_upload cookbook.
 
+v5.1.20 (2020-01-13)
+------------------
+* Added partner upload support
+
 v5.1.19 (2019-03-07)
 ------------------
 * Added new solicitors file type to upload process

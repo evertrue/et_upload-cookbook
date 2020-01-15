@@ -187,19 +187,18 @@ def compress_if_not_already(path, compression)
   return path if compression != 'NONE'
 
   logger.debug "Compressing #{path}"
-  Zlib::GzipWriter.open("#{path}.gz", Zlib::BEST_COMPRESSION) do |gz|
-    gz.mtime = File.mtime(path)
-    gz.orig_name = File.basename(path)
-    File.open(path) do |f|
-      IO.copy_stream(f, gz)
-    end
-  end
 
-  logger.debug("Removing original file: #{path}")
-  FileUtils.rm(path)
-  f = "#{path}.gz"
-  logger.debug("Compressed file: #{f}")
-  f
+  # saving original modification time
+  mtime = File.mtime(path)
+  `gzip #{path}`
+  raise("failed to gzip #{path}, exit code was #{$?}") unless $?.success?
+
+  path += '.gz'
+  raise("gzip file not found #{path}") unless File.exist?(path)
+  FileUtils.touch path, mtime: mtime
+  logger.debug("Compressed file: #{path}")
+
+  path
 end
 
 def no_auto_ingest?(oid)
@@ -360,7 +359,7 @@ def order_files_by_upload_time(base_dir)
   # Identify all files found under uploads folders at any folder level
   Dir.glob(base_dir + "/**/**")
     .select { |f| File.file?(f) } # filter out none files
-    .select { |path| path =~ /\/uploads\// } # only include files under the uploads path
+    .select { |path| File.basename(File.dirname(path)) == 'uploads' } # only include files under the uploads path
     .sort_by { |f| File.ctime(f) } # order by creation date
 end
 

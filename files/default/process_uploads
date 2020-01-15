@@ -190,7 +190,7 @@ def compress_if_not_already(path, compression)
 
   # saving original modification time
   mtime = File.mtime(path)
-  `gzip #{path}`
+  `gzip #{Shellwords.escape(path)}`
   raise("failed to gzip #{path}, exit code was #{$?}") unless $?.success?
 
   path += '.gz'

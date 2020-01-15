@@ -2,6 +2,11 @@ et_upload cookbook CHANGELOG
 ============================
 This file is used to list changes made in each version of the et_upload cookbook.
 
+5.1.22 (2020-01-13)
+------------------
+* Use gzip command for compressing files
+* Ensure files are in the uploads folders and not a subfolder
+
 v5.1.21 (2020-01-13)
 ------------------
 * Added partner upload support

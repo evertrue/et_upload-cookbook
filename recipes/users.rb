@@ -28,7 +28,7 @@ end
 upload_users = data_bag_item('users', 'upload').select { |uname| uname != 'id' }
 
 evertrue_gid = 'evertrue'
-upload_users.each do |uname, u|
+add_user_proc = Proc.new do |uname, u|
   # If a parent_user and partner have been provided then the user's home folder is the partner directory under the parent_user's home folder
   if u['parent_user'] && u['partner']
     u['home'] = "#{node['et_upload']['base_dir']}/users/#{u['parent_user']}/#{u['partner']}"
@@ -91,3 +91,6 @@ upload_users.each do |uname, u|
     end
   end
 end
+
+upload_users.reject { |uname, u| u['parent_user'] && u['partner'] }.each(&add_user_proc)
+upload_users.select { |uname, u| u['parent_user'] && u['partner'] }.each(&add_user_proc)

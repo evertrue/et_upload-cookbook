@@ -2,6 +2,10 @@ et_upload cookbook CHANGELOG
 ============================
 This file is used to list changes made in each version of the et_upload cookbook.
 
+5.1.26 (2021-03-01)
+-------------------
+* Added a reporting folder to all clients
+
 5.1.22 (2020-01-15)
 ------------------
 * Need to shellword escape the file name in gzip command

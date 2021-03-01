@@ -73,7 +73,7 @@ add_user_proc = Proc.new do |uname, u|
       mode '0700'
     end
 
-    %w(uploads exports reports reports/upload reports/export).each do |dir|
+    %w(uploads exports reports reports/uploads reports/exports).each do |dir|
       directory "#{u['home']}/#{dir}" do
         owner uname
         group evertrue_gid

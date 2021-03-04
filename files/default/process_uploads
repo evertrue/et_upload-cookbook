@@ -359,6 +359,7 @@ def order_files_by_upload_time(base_dir)
   # Identify all files found under uploads folders at any folder level
   Dir.glob(base_dir + "/**/**")
     .select { |f| File.file?(f) } # filter out none files
+    .reject { |f| f.include?('/reports/') } # ignore the reports folder
     .select { |path| File.basename(File.dirname(path)) == 'uploads' } # only include files under the uploads path
     .sort_by { |f| File.ctime(f) } # order by creation date
 end
